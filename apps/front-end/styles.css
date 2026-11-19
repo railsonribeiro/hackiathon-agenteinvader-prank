@@ -177,8 +177,15 @@ body {
 .flags ul { margin: 0; padding-left: 18px; }
 .flags li { font-size: 13px; line-height: 1.7; color: #d2d6dc; }
 .moral { font-size: 14px; line-height: 1.7; margin-top: 14px; }
+.disclaimer {
+  margin: 18px 0 0; padding: 12px 14px; border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11.5px; line-height: 1.6; color: var(--muted); text-align: center;
+}
+.disclaimer a { color: var(--red-soft); text-decoration: none; }
+.disclaimer a:hover { text-decoration: underline; }
 .foot {
-  margin-top: 22px; border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 14px; color: var(--muted); font-size: 12px; text-align: center;
 }
 .foot a { color: var(--red-soft); text-decoration: none; }
