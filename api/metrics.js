@@ -1,4 +1,4 @@
-import { redis } from '../lib/metrics.js';
+import { supabase } from '../lib/supabase.js';
 
 // Devolve as métricas agregadas para o painel.
 // Pode ser protegido com DASHBOARD_TOKEN (opcional).
@@ -13,27 +13,32 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [total, byday, events] = await Promise.all([
-      redis.get('hits:total'),
-      redis.hgetall('hits:byday'),
-      redis.lrange('hits:events', 0, 49),
+    const [totalRes, bydayRes, eventsRes] = await Promise.all([
+      supabase.from('hits').select('*', { count: 'exact', head: true }),
+      supabase.from('hits_by_day').select('*'),
+      supabase
+        .from('hits')
+        .select('created_at, referrer, user_agent')
+        .order('created_at', { ascending: false })
+        .limit(50),
     ]);
 
-    const parsedEvents = (events || [])
-      .map((e) => {
-        try {
-          return typeof e === 'string' ? JSON.parse(e) : e;
-        } catch {
-          return null;
-        }
-      })
-      .filter(Boolean);
+    const byday = {};
+    (bydayRes.data || []).forEach((r) => {
+      byday[r.day] = r.count;
+    });
+
+    const events = (eventsRes.data || []).map((r) => ({
+      t: r.created_at,
+      ref: r.referrer || '',
+      ua: r.user_agent || '',
+    }));
 
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json({
-      total: Number(total || 0),
-      byday: byday || {},
-      events: parsedEvents,
+      total: Number(totalRes.count || 0),
+      byday,
+      events,
     });
   } catch (err) {
     res.status(500).json({ error: 'metrics_unavailable' });

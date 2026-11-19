@@ -14,32 +14,32 @@ Quando alguém abre a página, ela mostra por alguns segundos uma tela sombria d
 |------|---------|---------|
 | `/` | `index.html` + `app.js` | Página de demonstração (isca + revelação) |
 | `/dashboard` | `dashboard.html` + `dashboard.js` | Painel de métricas de acessos |
-| `/api/hit` | `api/hit.js` | Registra um acesso (contador) |
+| `/api/hit` | `api/hit.js` | Registra um acesso (insere uma linha) |
 | `/api/metrics` | `api/metrics.js` | Devolve as métricas para o painel |
 
 - **Front-end:** HTML/CSS/JS puro, sem framework e sem build.
 - **Back-end:** funções serverless do Vercel (`/api`).
-- **Banco de dados:** [Upstash Redis](https://upstash.com) (serverless, free tier) para guardar o contador.
+- **Banco de dados:** [Supabase](https://supabase.com) (Postgres). Schema em `supabase/schema.sql`.
 
 ---
 
 ## Passo a passo do deploy no Vercel
 
-### 1. Crie o banco de dados (Upstash Redis)
+### 1. Prepare o banco no Supabase
 
-1. Crie uma conta gratuita em **https://upstash.com**.
-2. **Create Database** → escolha um nome e a região mais próxima (ex.: `sa-east-1`, São Paulo).
-3. Na página do banco, abra a aba **REST API** e copie:
-   - `UPSTASH_REDIS_REST_URL`
-   - `UPSTASH_REDIS_REST_TOKEN`
+1. No [dashboard do Supabase](https://supabase.com/dashboard), abra (ou crie) o seu projeto.
+2. Vá em **SQL Editor → New query**, cole o conteúdo de [`supabase/schema.sql`](supabase/schema.sql) e clique em **Run**. Isso cria a tabela `hits` e a view `hits_by_day`.
+3. Pegue as credenciais em **Settings → API Keys** (nos projetos mais antigos, **Settings → API**):
+   - **Project URL** → `SUPABASE_URL` (ex.: `https://abcdefgh.supabase.co`)
+   - **service_role** (ou crie uma **secret key** `sb_secret_...`) → `SUPABASE_SERVICE_ROLE_KEY`
 
-> Alternativa: você também pode adicionar o Upstash pelo **Marketplace do Vercel** (passo 4). Nesse caso o Vercel cria as variáveis automaticamente — o código aceita tanto `UPSTASH_REDIS_REST_*` quanto `KV_REST_API_*`.
+> 🔒 A chave secreta/service_role ignora o RLS e dá acesso total ao banco. Use **só no servidor**, nunca no navegador, e **nunca** faça commit dela (o GitHub e o Supabase varrem repositórios atrás de chaves vazadas).
 
 ### 2. Importe o projeto no Vercel
 
 1. Em **https://vercel.com** → **Add New… → Project**.
 2. **Import Git Repository** e selecione `railsonribeiro/hackiathon-agenteinvader-prank`.
-3. Framework Preset: **Other** (não precisa mudar nada). Clique em **Deploy** — ou configure as variáveis antes (passo 3) e depois faça o deploy.
+3. Framework Preset: **Other** (não precisa mudar nada).
 
 ### 3. Configure as variáveis de ambiente
 
@@ -47,8 +47,8 @@ No projeto do Vercel → **Settings → Environment Variables**, adicione:
 
 | Nome | Valor |
 |------|-------|
-| `UPSTASH_REDIS_REST_URL` | (copiado do Upstash) |
-| `UPSTASH_REDIS_REST_TOKEN` | (copiado do Upstash) |
+| `SUPABASE_URL` | Project URL do Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | chave service_role / secret |
 | `DASHBOARD_TOKEN` | *(opcional)* uma senha para proteger o painel |
 
 Depois de adicionar/alterar variáveis, faça um **Redeploy** para elas valerem.
@@ -59,7 +59,7 @@ Depois de adicionar/alterar variáveis, faça um **Redeploy** para elas valerem.
 2. No projeto do Vercel → **Settings → Domains** → adicione `siscritico.agenteinvader.com.br`.
 3. O Vercel vai pedir para criar um registro **CNAME** no DNS:
    - **Nome/host:** `siscritico`
-   - **Valor:** `cname.vercel-dns.com` (o Vercel mostra o valor exato)
+   - **Valor:** o que o Vercel mostrar (normalmente `cname.vercel-dns.com`)
 4. Crie esse CNAME no painel de DNS do domínio (Registro.br, Cloudflare ou onde estiver). Em alguns minutos o endereço fica no ar.
 
 Pronto: `https://siscritico.agenteinvader.com.br` mostra a demonstração e `…/dashboard` mostra as métricas.
@@ -76,12 +76,10 @@ Pronto: `https://siscritico.agenteinvader.com.br` mostra a demonstração e `…
 
 ## Rodar localmente (opcional)
 
-Precisa das variáveis do Upstash para o contador funcionar.
-
 ```bash
 npm install
 npm i -g vercel          # se ainda não tiver a CLI
-cp .env.example .env     # preencha UPSTASH_REDIS_REST_URL e _TOKEN
+cp .env.example .env     # preencha SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY
 vercel dev               # sobe em http://localhost:3000
 ```
 
