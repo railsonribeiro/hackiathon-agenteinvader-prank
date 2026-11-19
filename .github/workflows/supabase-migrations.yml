@@ -25,6 +25,10 @@ jobs:
         uses: supabase/setup-cli@v1
         with:
           version: latest
+        env:
+          # Autentica a busca da release da CLI para não esbarrar no rate limit
+          # da API pública do GitHub ("rate limit exceeded" no setup).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Link do projeto
         run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
