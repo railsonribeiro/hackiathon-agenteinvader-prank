@@ -100,6 +100,29 @@ body {
 }
 .hint { color: var(--muted); font-size: 12px; text-align: center; margin: 0.4em 0 0; }
 
+/* Banner "chamariz" (red flags de phishing, de propósito) */
+.promo {
+  margin: -8px -8px 20px; padding: 14px 16px; border-radius: 12px; text-align: center;
+  background: linear-gradient(135deg, #ffd23f, #ff8a00);
+  color: #1a1206; box-shadow: 0 8px 28px rgba(255, 138, 0, 0.3);
+}
+.promo-badge {
+  display: inline-block; background: #1a1206; color: #ffd23f;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+  padding: 4px 10px; border-radius: 999px; margin-bottom: 8px;
+}
+.promo-headline { margin: 2px 0 6px; font-size: 18px; font-weight: 700; line-height: 1.25; }
+.promo-sub { margin: 0; font-size: 12px; line-height: 1.5; }
+.promo-sub strong { color: #7a1500; }
+#countdown {
+  display: inline-block; background: #c20016; color: #fff;
+  padding: 1px 7px; border-radius: 6px; font-weight: 700; letter-spacing: 0.04em;
+}
+.seal {
+  text-align: center; margin: 14px 0 0; font-size: 12px; font-weight: 700;
+  letter-spacing: 0.08em; color: #37d07a;
+}
+
 /* Formulário de "validação" (encenação) */
 .form-intro { color: var(--muted); font-size: 13px; text-align: center; margin: 0 0 18px; line-height: 1.6; }
 #accessForm { display: flex; flex-direction: column; gap: 12px; }
@@ -135,6 +158,10 @@ body {
 }
 .callout p { margin: 0.3em 0; }
 .muted { color: var(--muted); font-size: 13px; }
+.flags { margin: 18px 0 4px; }
+.flags-title { font-size: 13px; font-weight: 700; color: #fff; margin: 0 0 8px; }
+.flags ul { margin: 0; padding-left: 18px; }
+.flags li { font-size: 13px; line-height: 1.7; color: #d2d6dc; }
 .moral { font-size: 14px; line-height: 1.7; margin-top: 14px; }
 .foot {
   margin-top: 22px; border-top: 1px solid rgba(255, 255, 255, 0.08);

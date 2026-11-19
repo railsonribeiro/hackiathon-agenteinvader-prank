@@ -7,6 +7,21 @@
     headers: { 'Content-Type': 'application/json' },
   }).catch(() => {});
 
+  // Cronômetro falso de "urgência" — puro teatro de phishing.
+  (function countdown() {
+    const cd = el('countdown');
+    if (!cd) return;
+    let secs = 5 * 60;
+    const tick = () => {
+      secs = Math.max(0, secs - 1);
+      const m = String(Math.floor(secs / 60)).padStart(2, '0');
+      const s = String(secs % 60).padStart(2, '0');
+      cd.textContent = m + ':' + s;
+      if (secs === 0) clearInterval(timer);
+    };
+    const timer = setInterval(tick, 1000);
+  })();
+
   el('accessForm').addEventListener('submit', (e) => {
     e.preventDefault();
 

@@ -14,6 +14,14 @@
     <!-- ETAPA 1: formulário de "validação".
          Encenação pura: nada do que é digitado é lido, enviado ou guardado. -->
     <section id="form" class="card">
+      <div class="promo">
+        <span class="promo-badge">&#127942; ACESSO VIP</span>
+        <p class="promo-headline">Garanta o <strong>1&ordm; lugar no ranking</strong> do Hackathon!</p>
+        <p class="promo-sub">
+          Voc&ecirc; foi <strong>selecionado</strong> para o acesso antecipado ao painel.
+          Oferta expira em <span id="countdown">05:00</span> &mdash; <strong>apenas 3 vagas!</strong>
+        </p>
+      </div>
       <div class="brandmark" aria-hidden="true"><span class="glyph">&#9670;</span></div>
       <h1 class="title">SISTEMA CRÍTICO</h1>
       <p class="subtitle">VALIDAÇÃO DE ACESSO</p>
@@ -25,8 +33,9 @@
         <label>Placa do veículo <input type="text" /></label>
         <label>Sala / unidade de acesso <input type="text" /></label>
         <label>Código do pedido (entrega) <input type="text" /></label>
-        <button type="submit" id="confirmBtn">Confirmar e prosseguir</button>
+        <button type="submit" id="confirmBtn">Confirmar e garantir minha vaga</button>
       </form>
+      <p class="seal">&#128274; 100% SEGURO &middot; VERIFICADO &middot; OFICIAL</p>
     </section>
 
     <!-- ETAPA 2: loading -->
@@ -56,6 +65,16 @@
           Esta página não armazena nenhum dado seu. Ela existe só para mostrar, na
           prática, como um golpe de phishing engana as pessoas.
         </p>
+      </div>
+      <div class="flags">
+        <p class="flags-title">Como dava pra perceber que era golpe:</p>
+        <ul>
+          <li>Promessa boa demais &mdash; "garanta o 1&ordm; lugar no ranking".</li>
+          <li>Urgência e cronômetro pra você agir sem pensar.</li>
+          <li>Escassez forçada &mdash; "apenas 3 vagas".</li>
+          <li>Selo de "100% seguro" que qualquer um pode escrever.</li>
+          <li>Pedido de dados num link/domínio que você não conhece.</li>
+        </ul>
       </div>
       <p class="moral">
         Fica a dica: desconfie de links que pedem seus dados &mdash; ainda mais os que
