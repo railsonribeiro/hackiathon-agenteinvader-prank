@@ -1,0 +1,14 @@
+{
+  "name": "siscritico-agenteinvader",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Demonstração de conscientização de segurança: o risco de divulgar links que apontam para domínios não registrados.",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.34.3"
+  }
+}

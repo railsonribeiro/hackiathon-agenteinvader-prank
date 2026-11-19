@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>SISTEMA CRÍTICO — Acesso Restrito</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="scene">
+  <div class="scanlines"></div>
+  <main class="stage">
+
+    <!-- ETAPA 1: isca dramática. Repare: NENHUM campo para digitar nada. -->
+    <section id="scan" class="card">
+      <div class="brandmark" aria-hidden="true"><span class="glyph">&#9670;</span></div>
+      <h1 class="title">SISTEMA CRÍTICO</h1>
+      <p class="subtitle">ACESSO RESTRITO</p>
+      <div class="terminal" id="terminal"></div>
+      <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+      <p class="hint" id="hint">Verificando origem da conexão&hellip;</p>
+    </section>
+
+    <!-- ETAPA 2: a revelação / lição de segurança. -->
+    <section id="reveal" class="card reveal hidden">
+      <div class="warn" aria-hidden="true">&#9888;</div>
+      <h1 class="title danger">PARE.</h1>
+      <p class="lead">Este domínio <strong>não estava registrado</strong> até pouco tempo atrás.</p>
+      <p class="body">
+        Você clicou em um link que apontava para um endereço que
+        <strong>qualquer pessoa</strong> poderia ter registrado &mdash; inclusive um golpista.
+        Se esta fosse uma página de verdade, você poderia ter acabado de digitar seu usuário,
+        sua senha e seus dados&hellip; e entregado tudo para a pessoa errada.
+      </p>
+
+      <div class="callout">
+        <p><strong>Isto é uma demonstração de conscientização de segurança.</strong></p>
+        <p class="muted">
+          Nenhum dado seu foi pedido ou coletado. Só registramos que esta página foi aberta,
+          para mostrar à equipe quantas pessoas chegaram até aqui através de um link assim.
+        </p>
+      </div>
+
+      <p class="moral">
+        A lição: <strong>nunca divulguem links apontando para domínios não registrados.</strong>
+        Registrem o domínio antes &mdash; ou simplesmente não publiquem o link.
+      </p>
+
+      <footer class="foot">
+        Demonstração &bull; sem coleta de dados pessoais &bull;
+        <a href="/dashboard">painel de métricas</a>
+      </footer>
+    </section>
+
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
