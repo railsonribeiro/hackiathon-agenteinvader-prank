@@ -72,6 +72,7 @@ body {
 
 .brandmark { display: flex; justify-content: center; margin-bottom: 10px; }
 .glyph { color: var(--red); font-size: 34px; filter: drop-shadow(0 0 12px rgba(226, 32, 59, 0.8)); }
+.rq-logo { width: 48px; height: auto; color: var(--red); filter: drop-shadow(0 0 14px rgba(226, 32, 59, 0.75)); }
 
 .title { font-size: 30px; letter-spacing: 0.14em; margin: 0.2em 0 0; text-align: center; }
 .title.danger { color: var(--red-soft); text-shadow: 0 0 24px rgba(226, 32, 59, 0.6); }
