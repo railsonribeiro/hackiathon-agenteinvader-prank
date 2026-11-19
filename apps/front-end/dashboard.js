@@ -1,11 +1,8 @@
 (() => {
-  const token = new URLSearchParams(location.search).get('token') || '';
-  const url = '/api/metrics' + (token ? '?token=' + encodeURIComponent(token) : '');
-
   const spDay = () =>
     new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
 
-  fetch(url)
+  fetch('/api/metrics')
     .then((r) => {
       if (r.status === 401) throw new Error('unauthorized');
       return r.json();
@@ -14,7 +11,7 @@
     .catch((err) => {
       document.getElementById('note').textContent =
         err.message === 'unauthorized'
-          ? 'Painel protegido. Adicione ?token=SEU_TOKEN na URL.'
+          ? 'Sessão não autenticada. Recarregue a página e faça login.'
           : 'Não foi possível carregar as métricas. O banco de dados já foi configurado nas variáveis de ambiente?';
     });
 

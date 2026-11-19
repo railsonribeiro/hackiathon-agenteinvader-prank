@@ -70,7 +70,8 @@ No projeto do Vercel → **Settings → Environment Variables**, adicione:
 |------|-------|
 | `SUPABASE_URL` | Project URL do Supabase |
 | `SUPABASE_SERVICE_ROLE_KEY` | chave service_role / secret |
-| `DASHBOARD_TOKEN` | *(opcional)* uma senha para proteger o painel |
+| `DASHBOARD_USER` | usuário do login do painel |
+| `DASHBOARD_PASSWORD` | senha do login do painel |
 
 Depois de adicionar/alterar variáveis, faça um **Redeploy** para elas valerem.
 
@@ -111,7 +112,7 @@ Depois de cadastrar os secrets, rode o workflow uma vez (push ou *Run workflow*)
 
 - Acesse em **`/dashboard`**.
 - Mostra: acessos totais, acessos de hoje, acessos por dia (gráfico) e os últimos acessos.
-- Se você definir `DASHBOARD_TOKEN`, o painel fica protegido — acesse em **`/dashboard?token=SEU_TOKEN`**.
+- **Login obrigatório:** o `/dashboard` (e a API `/api/metrics`) são protegidos por autenticação HTTP Basic no [`middleware.js`](apps/front-end/middleware.js). Defina `DASHBOARD_USER` e `DASHBOARD_PASSWORD` no Vercel — ao abrir o painel, o navegador pede usuário e senha. (Se as duas variáveis ficarem vazias, o painel fica aberto; defina-as em produção.)
 
 ---
 

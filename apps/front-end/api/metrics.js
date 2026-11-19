@@ -1,17 +1,8 @@
 import { supabase } from '../lib/supabase.js';
 
 // Devolve as métricas agregadas para o painel.
-// Pode ser protegido com DASHBOARD_TOKEN (opcional).
+// O acesso é protegido pelo middleware (login HTTP Basic) — veja middleware.js.
 export default async function handler(req, res) {
-  const required = process.env.DASHBOARD_TOKEN;
-  if (required) {
-    const token = (req.query && req.query.token) || '';
-    if (token !== required) {
-      res.status(401).json({ error: 'unauthorized' });
-      return;
-    }
-  }
-
   try {
     const [totalRes, bydayRes, eventsRes] = await Promise.all([
       supabase.from('hits').select('*', { count: 'exact', head: true }),
