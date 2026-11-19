@@ -6,7 +6,7 @@ Quando alguém abre a página, ela mostra por alguns segundos uma tela sombria d
 
 A página mostra um **formulário de "validação"** (crachá, placa, sala etc.) só como encenação: o participante acha que vai destravar algo e, ao confirmar, recebe o aviso de que foi uma simulação.
 
-> ⚠️ **O que esta página NÃO faz:** ela **não lê, não envia e não guarda nada do que é digitado** no formulário. As únicas informações registradas são dois contadores — quantas pessoas **abriram** a página e quantas **clicaram em confirmar** — sem referrer, sem IP, sem localização. É só o que alimenta o painel.
+> ⚠️ **O que esta página NÃO faz:** ela **não lê, não envia e não guarda nada do que é digitado** no formulário. O que é registrado: dois contadores (quantas pessoas **abriram** a página e quantas **clicaram em confirmar**) e a **localização agregada** do acesso (país/região/cidade, dos cabeçalhos de geo do Vercel). **Nenhum IP** e nada que identifique a pessoa — é analytics agregado, fora do escopo de dado pessoal.
 
 ---
 
@@ -115,7 +115,7 @@ Depois de cadastrar os secrets, rode o workflow uma vez (push ou *Run workflow*)
 ## Painel de métricas
 
 - Acesse em **`/dashboard`**.
-- Mostra dois números: **Acessos** (quantas pessoas abriram a página) e **Preencheram o formulário** (quantas clicaram em confirmar). Sem referrer, IP ou localização.
+- Mostra: **Acessos** e **Preencheram o formulário** (contadores), **Localização dos acessos** (país/região/cidade agregados, sem IP) e um painel de **Observabilidade** (status do banco, variáveis, chave, latências).
 - **Login via Supabase (e-mail + senha):** o `/dashboard` mostra um formulário de login; a API `/api/metrics` valida o token do usuário no servidor e só então devolve os dados. Qualquer usuário cadastrado no seu projeto Supabase tem acesso.
 - **Como gerenciar quem entra:** em **Supabase → Authentication → Users**, clique em **Add user** para criar cada admin (e-mail + senha). Para revogar o acesso de alguém, basta remover/desativar o usuário ali. O Supabase registra os logins (rastreabilidade por pessoa).
 - Garanta que o provedor **Email** está habilitado em **Authentication → Providers** (vem ligado por padrão). Para esta demo, desligar a confirmação por e-mail facilita criar usuários direto no painel.

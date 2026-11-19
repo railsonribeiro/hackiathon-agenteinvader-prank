@@ -83,6 +83,7 @@
         metricsLatency = Math.round(performance.now() - t0);
         el('accesses').textContent = data.accesses || 0;
         el('submissions').textContent = data.submissions || 0;
+        renderLocations(data.locations || []);
       })
       .catch((err) => {
         el('note').textContent =
@@ -90,6 +91,30 @@
             ? 'Sua conta não tem acesso ao painel.'
             : 'Não foi possível carregar as métricas.';
       });
+  }
+
+  // ---- Localização dos acessos ----
+  function renderLocations(locations) {
+    const box = el('locations');
+    if (!box) return;
+    if (!locations.length) {
+      box.innerHTML = '<p class="muted">Nenhum acesso ainda.</p>';
+      return;
+    }
+    const max = Math.max(1, ...locations.map((l) => l.count));
+    box.innerHTML = locations
+      .map((l) => {
+        const place = [l.city, l.region, l.country].filter(Boolean).join(', ') || '—';
+        const pct = Math.round((l.count / max) * 100);
+        return (
+          '<div class="loc-row">' +
+          '<span class="loc-place">' + esc(place) + '</span>' +
+          '<span class="loc-bar"><span class="loc-fill" style="width:' + pct + '%"></span></span>' +
+          '<span class="loc-count">' + l.count + '</span>' +
+          '</div>'
+        );
+      })
+      .join('');
   }
 
   // ---- Observabilidade / diagnóstico ----

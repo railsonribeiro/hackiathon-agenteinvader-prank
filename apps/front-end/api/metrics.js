@@ -33,15 +33,24 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [accessRes, submitRes] = await Promise.all([
+    const [accessRes, submitRes, locRes] = await Promise.all([
       supabase.from('hits').select('*', { count: 'exact', head: true }),
       supabase.from('form_submissions').select('*', { count: 'exact', head: true }),
+      supabase.from('hits_by_location').select('*').limit(50),
     ]);
+
+    const locations = (locRes.data || []).map((r) => ({
+      country: r.country || '—',
+      region: r.region || '',
+      city: r.city || '',
+      count: Number(r.count || 0),
+    }));
 
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json({
       accesses: Number(accessRes.count || 0),
       submissions: Number(submitRes.count || 0),
+      locations,
     });
   } catch (err) {
     res.status(500).json({ error: 'metrics_unavailable' });
