@@ -35,7 +35,8 @@ Os caminhos abaixo são relativos a `apps/front-end/`.
 | `/` | `index.html` + `app.js` | Página de demonstração (isca + revelação) |
 | `/dashboard` | `dashboard.html` + `dashboard.js` | Painel de métricas de acessos |
 | `/api/hit` | `api/hit.js` | Registra um acesso (insere uma linha) |
-| `/api/metrics` | `api/metrics.js` | Devolve as métricas para o painel |
+| `/api/metrics` | `api/metrics.js` | Devolve as métricas (exige login do Supabase) |
+| `/api/config` | `api/config.js` | Credenciais públicas do Supabase para o login no cliente |
 
 - **Front-end:** HTML/CSS/JS puro, sem framework e sem build.
 - **Back-end:** funções serverless do Vercel (`/api`).
@@ -52,6 +53,7 @@ Os caminhos abaixo são relativos a `apps/front-end/`.
 3. Pegue as credenciais de runtime em **Settings → API Keys** (nos projetos mais antigos, **Settings → API**):
    - **Project URL** → `SUPABASE_URL` (ex.: `https://abcdefgh.supabase.co`)
    - **service_role** (ou crie uma **secret key** `sb_secret_...`) → `SUPABASE_SERVICE_ROLE_KEY`
+   - **anon** (ou **publishable** `sb_publishable_...`) → `SUPABASE_ANON_KEY` (pública, usada no login do painel)
 
 > 🔒 A chave secreta/service_role ignora o RLS e dá acesso total ao banco. Use **só no servidor**, nunca no navegador, e **nunca** faça commit dela (o GitHub e o Supabase varrem repositórios atrás de chaves vazadas).
 
@@ -69,9 +71,8 @@ No projeto do Vercel → **Settings → Environment Variables**, adicione:
 | Nome | Valor |
 |------|-------|
 | `SUPABASE_URL` | Project URL do Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | chave service_role / secret |
-| `DASHBOARD_USER` | usuário do login do painel |
-| `DASHBOARD_PASSWORD` | senha do login do painel |
+| `SUPABASE_SERVICE_ROLE_KEY` | chave service_role / secret (servidor) |
+| `SUPABASE_ANON_KEY` | chave anon / publishable (pública, para o login) |
 
 Depois de adicionar/alterar variáveis, faça um **Redeploy** para elas valerem.
 
@@ -112,7 +113,10 @@ Depois de cadastrar os secrets, rode o workflow uma vez (push ou *Run workflow*)
 
 - Acesse em **`/dashboard`**.
 - Mostra: acessos totais, acessos de hoje, acessos por dia (gráfico) e os últimos acessos.
-- **Login obrigatório:** o `/dashboard` (e a API `/api/metrics`) são protegidos por autenticação HTTP Basic no [`middleware.js`](apps/front-end/middleware.js). Defina `DASHBOARD_USER` e `DASHBOARD_PASSWORD` no Vercel — ao abrir o painel, o navegador pede usuário e senha. (Se as duas variáveis ficarem vazias, o painel fica aberto; defina-as em produção.)
+- **Login via Supabase (e-mail + senha):** o `/dashboard` mostra um formulário de login; a API `/api/metrics` valida o token do usuário no servidor e só então devolve os dados. Qualquer usuário cadastrado no seu projeto Supabase tem acesso.
+- **Como gerenciar quem entra:** em **Supabase → Authentication → Users**, clique em **Add user** para criar cada admin (e-mail + senha). Para revogar o acesso de alguém, basta remover/desativar o usuário ali. O Supabase registra os logins (rastreabilidade por pessoa).
+- Garanta que o provedor **Email** está habilitado em **Authentication → Providers** (vem ligado por padrão). Para esta demo, desligar a confirmação por e-mail facilita criar usuários direto no painel.
+- Para restringir ainda mais (ex.: só e-mails de um domínio), dá para checar `userData.user.email` em `api/metrics.js`.
 
 ---
 

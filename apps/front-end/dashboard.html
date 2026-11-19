@@ -7,6 +7,7 @@
   <title>Painel de Métricas — Demonstração</title>
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="scene">
   <div class="scanlines"></div>
@@ -16,24 +17,47 @@
       <p class="muted">Acessos à demonstração de conscientização &bull; <a href="/">ver a página</a></p>
     </header>
 
-    <section class="stats">
-      <div class="stat"><div class="num" id="total">&mdash;</div><div class="lbl">Acessos totais</div></div>
-      <div class="stat"><div class="num" id="today">&mdash;</div><div class="lbl">Acessos hoje</div></div>
-      <div class="stat"><div class="num" id="days">&mdash;</div><div class="lbl">Dias com acesso</div></div>
+    <!-- Login (e-mail + senha via Supabase) -->
+    <section id="login" class="panel login-card hidden">
+      <h2>Entrar</h2>
+      <form id="loginForm">
+        <label>E-mail
+          <input type="email" id="email" required autocomplete="username" />
+        </label>
+        <label>Senha
+          <input type="password" id="password" required autocomplete="current-password" />
+        </label>
+        <button type="submit" id="loginBtn">Entrar</button>
+        <p class="login-error" id="loginError"></p>
+      </form>
     </section>
 
-    <section class="panel">
-      <h2>Acessos por dia</h2>
-      <div class="chart" id="chart"></div>
-    </section>
+    <!-- Conteúdo autenticado -->
+    <div id="content" class="hidden">
+      <div class="authbar">
+        <span id="whoami" class="muted"></span>
+        <button id="logout" class="linkbtn">Sair</button>
+      </div>
 
-    <section class="panel">
-      <h2>Últimos acessos</h2>
-      <table class="tbl">
-        <thead><tr><th>Quando (São Paulo)</th><th>Origem (referrer)</th></tr></thead>
-        <tbody id="events"></tbody>
-      </table>
-    </section>
+      <section class="stats">
+        <div class="stat"><div class="num" id="total">&mdash;</div><div class="lbl">Acessos totais</div></div>
+        <div class="stat"><div class="num" id="today">&mdash;</div><div class="lbl">Acessos hoje</div></div>
+        <div class="stat"><div class="num" id="days">&mdash;</div><div class="lbl">Dias com acesso</div></div>
+      </section>
+
+      <section class="panel">
+        <h2>Acessos por dia</h2>
+        <div class="chart" id="chart"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Últimos acessos</h2>
+        <table class="tbl">
+          <thead><tr><th>Quando (São Paulo)</th><th>Origem (referrer)</th></tr></thead>
+          <tbody id="events"></tbody>
+        </table>
+      </section>
+    </div>
 
     <p class="note" id="note"></p>
   </main>

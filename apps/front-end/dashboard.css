@@ -38,6 +38,35 @@
 .tbl td { padding: 7px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
 .ref { color: var(--muted); word-break: break-all; }
 
+/* Login */
+.login-card { max-width: 360px; margin: 40px auto 0; }
+.login-card form { display: flex; flex-direction: column; gap: 14px; }
+.login-card label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); }
+.login-card input {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px; padding: 11px 12px; color: var(--ink);
+  font-family: inherit; font-size: 14px;
+}
+.login-card input:focus { outline: none; border-color: var(--red); }
+.login-card button {
+  margin-top: 4px; padding: 11px; border: none; border-radius: 8px; cursor: pointer;
+  color: #fff; font-family: inherit; font-size: 14px; font-weight: 600;
+  background: linear-gradient(90deg, var(--red), var(--red-soft));
+}
+.login-card button:disabled { opacity: 0.6; cursor: default; }
+.login-error { color: var(--red-soft); font-size: 13px; min-height: 18px; margin: 0; text-align: center; }
+
+.authbar {
+  display: flex; align-items: center; justify-content: flex-end; gap: 12px;
+  margin: 4px 0 18px;
+}
+.linkbtn {
+  background: none; border: 1px solid rgba(255, 255, 255, 0.15); color: var(--muted);
+  border-radius: 8px; padding: 6px 12px; font-family: inherit; font-size: 12px; cursor: pointer;
+}
+.linkbtn:hover { color: #fff; border-color: var(--red); }
+
 .note { color: var(--muted); font-size: 13px; text-align: center; margin-top: 20px; }
 @media (max-width: 520px) {
   .stats { grid-template-columns: 1fr; }
