@@ -7,6 +7,16 @@
     headers: { 'Content-Type': 'application/json' },
   }).catch(() => {});
 
+  // "Último dia" sempre com a data de hoje — clássico golpe de urgência.
+  (function deadline() {
+    const t = el('today');
+    if (!t) return;
+    t.textContent = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      day: '2-digit', month: '2-digit', year: 'numeric',
+    }).format(new Date());
+  })();
+
   // Cronômetro falso de "urgência" — puro teatro de phishing.
   (function countdown() {
     const cd = el('countdown');
