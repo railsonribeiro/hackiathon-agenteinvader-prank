@@ -4,7 +4,9 @@ Página simples que demonstra, de forma segura, **o risco de divulgar links que 
 
 Quando alguém abre a página, ela mostra por alguns segundos uma tela sombria de "sistema restrito" e, em seguida, **revela a lição**: aquele domínio estava livre e qualquer pessoa — inclusive um golpista — poderia ter registrado e colocado no ar uma página falsa para roubar dados.
 
-> ⚠️ **O que esta página NÃO faz:** ela não tem formulário, não pede usuário/senha e **não coleta nenhum dado pessoal** de quem acessa. A única informação guardada é a contagem de acessos (e metadados básicos de requisição, como um log de servidor), usada no painel de métricas para mostrar à equipe quantas pessoas chegaram até ali por um link desses.
+A página mostra um **formulário de "validação"** (crachá, placa, sala etc.) só como encenação: o participante acha que vai destravar algo e, ao confirmar, recebe o aviso de que foi uma simulação.
+
+> ⚠️ **O que esta página NÃO faz:** ela **não lê, não envia e não guarda nada do que é digitado** no formulário. As únicas informações registradas são dois contadores — quantas pessoas **abriram** a página e quantas **clicaram em confirmar** — sem referrer, sem IP, sem localização. É só o que alimenta o painel.
 
 ---
 
@@ -34,8 +36,9 @@ Os caminhos abaixo são relativos a `apps/front-end/`.
 |------|---------|---------|
 | `/` | `index.html` + `app.js` | Página de demonstração (isca + revelação) |
 | `/dashboard` | `dashboard.html` + `dashboard.js` | Painel de métricas de acessos |
-| `/api/hit` | `api/hit.js` | Registra um acesso (insere uma linha) |
-| `/api/metrics` | `api/metrics.js` | Devolve as métricas (exige login do Supabase) |
+| `/api/hit` | `api/hit.js` | Conta um acesso (abertura da página) |
+| `/api/submit` | `api/submit.js` | Conta um clique em "Confirmar" (sem ler o formulário) |
+| `/api/metrics` | `api/metrics.js` | Devolve os dois contadores (exige login do Supabase) |
 | `/api/config` | `api/config.js` | Credenciais públicas do Supabase para o login no cliente |
 
 - **Front-end:** HTML/CSS/JS puro, sem framework e sem build.
@@ -112,7 +115,7 @@ Depois de cadastrar os secrets, rode o workflow uma vez (push ou *Run workflow*)
 ## Painel de métricas
 
 - Acesse em **`/dashboard`**.
-- Mostra: acessos totais, acessos de hoje, acessos por dia (gráfico) e os últimos acessos.
+- Mostra dois números: **Acessos** (quantas pessoas abriram a página) e **Preencheram o formulário** (quantas clicaram em confirmar). Sem referrer, IP ou localização.
 - **Login via Supabase (e-mail + senha):** o `/dashboard` mostra um formulário de login; a API `/api/metrics` valida o token do usuário no servidor e só então devolve os dados. Qualquer usuário cadastrado no seu projeto Supabase tem acesso.
 - **Como gerenciar quem entra:** em **Supabase → Authentication → Users**, clique em **Add user** para criar cada admin (e-mail + senha). Para revogar o acesso de alguém, basta remover/desativar o usuário ali. O Supabase registra os logins (rastreabilidade por pessoa).
 - Garanta que o provedor **Email** está habilitado em **Authentication → Providers** (vem ligado por padrão). Para esta demo, desligar a confirmação por e-mail facilita criar usuários direto no painel.

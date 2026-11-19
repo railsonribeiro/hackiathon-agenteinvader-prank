@@ -33,29 +33,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [totalRes, bydayRes, eventsRes] = await Promise.all([
+    const [accessRes, submitRes] = await Promise.all([
       supabase.from('hits').select('*', { count: 'exact', head: true }),
-      supabase.from('hits_by_day').select('*'),
-      supabase
-        .from('hits')
-        .select('created_at, referrer, user_agent')
-        .order('created_at', { ascending: false })
-        .limit(50),
+      supabase.from('form_submissions').select('*', { count: 'exact', head: true }),
     ]);
 
-    const byday = {};
-    (bydayRes.data || []).forEach((r) => {
-      byday[r.day] = r.count;
-    });
-
-    const events = (eventsRes.data || []).map((r) => ({
-      t: r.created_at,
-      ref: r.referrer || '',
-      ua: r.user_agent || '',
-    }));
-
     res.setHeader('Cache-Control', 'no-store');
-    res.status(200).json({ total: Number(totalRes.count || 0), byday, events });
+    res.status(200).json({
+      accesses: Number(accessRes.count || 0),
+      submissions: Number(submitRes.count || 0),
+    });
   } catch (err) {
     res.status(500).json({ error: 'metrics_unavailable' });
   }

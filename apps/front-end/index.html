@@ -11,44 +11,58 @@
   <div class="scanlines"></div>
   <main class="stage">
 
-    <!-- ETAPA 1: isca dramática. Repare: NENHUM campo para digitar nada. -->
-    <section id="scan" class="card">
+    <!-- ETAPA 1: formulário de "validação".
+         Encenação pura: nada do que é digitado é lido, enviado ou guardado. -->
+    <section id="form" class="card">
       <div class="brandmark" aria-hidden="true"><span class="glyph">&#9670;</span></div>
       <h1 class="title">SISTEMA CRÍTICO</h1>
-      <p class="subtitle">ACESSO RESTRITO</p>
-      <div class="terminal" id="terminal"></div>
-      <div class="bar"><div class="bar-fill" id="barFill"></div></div>
-      <p class="hint" id="hint">Verificando origem da conexão&hellip;</p>
+      <p class="subtitle">VALIDAÇÃO DE ACESSO</p>
+      <p class="form-intro">
+        Confirme as evidências que você coletou para liberar o acesso ao painel restrito.
+      </p>
+      <form id="accessForm" autocomplete="off">
+        <label>Número do crachá <input type="text" inputmode="numeric" /></label>
+        <label>Placa do veículo <input type="text" /></label>
+        <label>Sala / unidade de acesso <input type="text" /></label>
+        <label>Código do pedido (entrega) <input type="text" /></label>
+        <label>Data/hora registrada na câmera <input type="text" /></label>
+        <button type="submit" id="confirmBtn">Confirmar e prosseguir</button>
+      </form>
     </section>
 
-    <!-- ETAPA 2: a revelação / lição de segurança. -->
+    <!-- ETAPA 2: loading -->
+    <section id="scan" class="card hidden">
+      <div class="brandmark" aria-hidden="true"><span class="glyph">&#9670;</span></div>
+      <h1 class="title">SISTEMA CRÍTICO</h1>
+      <p class="subtitle">LIBERANDO ACESSO</p>
+      <div class="terminal" id="terminal"></div>
+      <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+      <p class="hint">Validando evidências&hellip;</p>
+    </section>
+
+    <!-- ETAPA 3: revelação / aviso de simulação -->
     <section id="reveal" class="card reveal hidden">
       <div class="warn" aria-hidden="true">&#9888;</div>
       <h1 class="title danger">PARE.</h1>
-      <p class="lead">Este domínio <strong>não estava registrado</strong> até pouco tempo atrás.</p>
+      <p class="lead">Isto foi uma <strong>simulação</strong>.</p>
       <p class="body">
-        Você clicou em um link que apontava para um endereço que
-        <strong>qualquer pessoa</strong> poderia ter registrado &mdash; inclusive um golpista.
-        Se esta fosse uma página de verdade, você poderia ter acabado de digitar seu usuário,
-        sua senha e seus dados&hellip; e entregado tudo para a pessoa errada.
+        Você acabou de preencher e "enviar" dados em uma página hospedada num
+        domínio que estava <strong>livre para qualquer pessoa registrar</strong> &mdash;
+        inclusive um golpista. Em um ataque de verdade, tudo o que você digitasse
+        poderia ter ido parar nas mãos erradas.
       </p>
-
       <div class="callout">
-        <p><strong>Isto é uma demonstração de conscientização de segurança.</strong></p>
+        <p><strong>Fique tranquilo: nada do que você digitou foi enviado ou guardado.</strong></p>
         <p class="muted">
-          Nenhum dado seu foi pedido ou coletado. Só registramos que esta página foi aberta,
-          para mostrar à equipe quantas pessoas chegaram até aqui através de um link assim.
+          Esta página não armazena nenhum dado seu. Ela existe só para mostrar, na
+          prática, como um golpe de phishing engana as pessoas.
         </p>
       </div>
-
       <p class="moral">
-        A lição: <strong>nunca divulguem links apontando para domínios não registrados.</strong>
-        Registrem o domínio antes &mdash; ou simplesmente não publiquem o link.
+        Fica a dica: desconfie de links que pedem seus dados &mdash; ainda mais os que
+        aparecem no meio de desafios, premiações ou "próximas etapas".
       </p>
-
-      <footer class="foot">
-        Demonstração &bull; sem coleta de dados pessoais
-      </footer>
+      <footer class="foot">Simulação de conscientização &bull; nenhum dado é coletado</footer>
     </section>
 
   </main>

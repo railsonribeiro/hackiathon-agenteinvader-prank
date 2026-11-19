@@ -1,39 +1,52 @@
 (() => {
-  // Registra o acesso (métrica de visita). Não envia nenhum dado do usuário.
+  const el = (id) => document.getElementById(id);
+
+  // Conta o acesso (abertura da página). Não envia nenhum dado do usuário.
   fetch('/api/hit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   }).catch(() => {});
 
-  const lines = [
-    '> conexão recebida',
-    '> origem: domínio não verificado',
-    '> validando certificado de confiança...',
-    '> resultado: FALHA',
-  ];
+  el('accessForm').addEventListener('submit', (e) => {
+    e.preventDefault();
 
-  const term = document.getElementById('terminal');
-  const barFill = document.getElementById('barFill');
-  let i = 0;
+    // Conta APENAS o clique em confirmar. Não lê nem envia o que foi digitado.
+    fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    }).catch(() => {});
 
-  function typeLine() {
-    if (i < lines.length) {
-      const el = document.createElement('div');
-      el.className = 'tline';
-      el.textContent = lines[i];
-      term.appendChild(el);
-      i++;
-      barFill.style.width = Math.round((i / lines.length) * 100) + '%';
-      setTimeout(typeLine, 650);
-    } else {
-      setTimeout(showReveal, 750);
-    }
+    el('form').classList.add('hidden');
+    el('scan').classList.remove('hidden');
+    runScan();
+  });
+
+  function runScan() {
+    const lines = [
+      '> evidências recebidas',
+      '> cruzando com a base de acesso...',
+      '> validando credenciais...',
+      '> resultado: FALHA',
+    ];
+    const term = el('terminal');
+    const barFill = el('barFill');
+    let i = 0;
+
+    (function typeLine() {
+      if (i < lines.length) {
+        const d = document.createElement('div');
+        d.className = 'tline';
+        d.textContent = lines[i];
+        term.appendChild(d);
+        i++;
+        barFill.style.width = Math.round((i / lines.length) * 100) + '%';
+        setTimeout(typeLine, 650);
+      } else {
+        setTimeout(() => {
+          el('scan').classList.add('hidden');
+          el('reveal').classList.remove('hidden');
+        }, 750);
+      }
+    })();
   }
-
-  function showReveal() {
-    document.getElementById('scan').classList.add('hidden');
-    document.getElementById('reveal').classList.remove('hidden');
-  }
-
-  typeLine();
 })();
