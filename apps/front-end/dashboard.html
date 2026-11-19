@@ -43,6 +43,21 @@
         <div class="stat"><div class="num" id="accesses">&mdash;</div><div class="lbl">Acessos</div></div>
         <div class="stat"><div class="num" id="submissions">&mdash;</div><div class="lbl">Preencheram o formulário</div></div>
       </section>
+
+      <section class="panel obs">
+        <div class="obs-head">
+          <h2>Observabilidade</h2>
+          <div class="obs-actions">
+            <button id="obsWrite" class="linkbtn">Testar escrita</button>
+            <button id="obsRefresh" class="linkbtn">Atualizar</button>
+          </div>
+        </div>
+        <div id="obsRows" class="obs-rows"><p class="muted">Carregando&hellip;</p></div>
+        <details class="obs-raw">
+          <summary>Detalhes (JSON)</summary>
+          <pre id="obsJson"></pre>
+        </details>
+      </section>
     </div>
 
     <p class="note" id="note"></p>

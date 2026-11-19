@@ -1,5 +1,12 @@
 {
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "admin.agenteinvader.com.br" }],
+      "destination": "/dashboard.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
