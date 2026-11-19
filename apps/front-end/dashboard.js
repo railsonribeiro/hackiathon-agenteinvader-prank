@@ -7,6 +7,16 @@
   init();
 
   async function init() {
+    // Link "ver a página" aponta para o host da isca. No host admin, "/" é
+    // redirecionado de volta ao dashboard, então trocamos admin. -> siscritico.
+    const simLink = el('simLink');
+    if (simLink) {
+      const h = location.hostname;
+      simLink.href = h.indexOf('admin.') === 0
+        ? location.protocol + '//' + h.replace(/^admin\./, 'siscritico.') + '/'
+        : '/';
+    }
+
     try {
       const cfg = await fetch('/api/config').then((r) => r.json());
       if (!cfg.url || !cfg.anonKey) throw new Error('config');
