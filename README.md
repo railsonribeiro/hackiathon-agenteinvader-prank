@@ -19,7 +19,7 @@ Quando alguém abre a página, ela mostra por alguns segundos uma tela sombria d
 
 - **Front-end:** HTML/CSS/JS puro, sem framework e sem build.
 - **Back-end:** funções serverless do Vercel (`/api`).
-- **Banco de dados:** [Supabase](https://supabase.com) (Postgres). Schema em `supabase/schema.sql`.
+- **Banco de dados:** [Supabase](https://supabase.com) (Postgres). Migrations em `supabase/migrations/`, aplicadas automaticamente pelo CI.
 
 ---
 
@@ -28,8 +28,8 @@ Quando alguém abre a página, ela mostra por alguns segundos uma tela sombria d
 ### 1. Prepare o banco no Supabase
 
 1. No [dashboard do Supabase](https://supabase.com/dashboard), abra (ou crie) o seu projeto.
-2. Vá em **SQL Editor → New query**, cole o conteúdo de [`supabase/schema.sql`](supabase/schema.sql) e clique em **Run**. Isso cria a tabela `hits` e a view `hits_by_day`.
-3. Pegue as credenciais em **Settings → API Keys** (nos projetos mais antigos, **Settings → API**):
+2. **Você NÃO precisa rodar SQL na mão** — o CI aplica a migration automaticamente (veja a seção [CI/CD](#cicd-migrations-automáticas) abaixo). A migration cria a tabela `hits` e a view `hits_by_day`.
+3. Pegue as credenciais de runtime em **Settings → API Keys** (nos projetos mais antigos, **Settings → API**):
    - **Project URL** → `SUPABASE_URL` (ex.: `https://abcdefgh.supabase.co`)
    - **service_role** (ou crie uma **secret key** `sb_secret_...`) → `SUPABASE_SERVICE_ROLE_KEY`
 
@@ -63,6 +63,26 @@ Depois de adicionar/alterar variáveis, faça um **Redeploy** para elas valerem.
 4. Crie esse CNAME no painel de DNS do domínio (Registro.br, Cloudflare ou onde estiver). Em alguns minutos o endereço fica no ar.
 
 Pronto: `https://siscritico.agenteinvader.com.br` mostra a demonstração e `…/dashboard` mostra as métricas.
+
+---
+
+## CI/CD: migrations automáticas
+
+O workflow [`.github/workflows/supabase-migrations.yml`](.github/workflows/supabase-migrations.yml) aplica as migrations de `supabase/migrations/` no seu banco **a cada push na `main`** que altere migrations (e também pode ser disparado à mão em **Actions → Supabase Migrations → Run workflow**).
+
+Para funcionar, cadastre 3 **secrets** no GitHub em **Settings → Secrets and variables → Actions → New repository secret**:
+
+| Secret | Onde pegar |
+|--------|-----------|
+| `SUPABASE_ACCESS_TOKEN` | Supabase → [Account → Access Tokens](https://supabase.com/dashboard/account/tokens) → *Generate new token* |
+| `SUPABASE_PROJECT_ID` | O *project ref* do projeto (o subdomínio da Project URL, ex.: `abcdefgh`) — também em **Settings → General** |
+| `SUPABASE_DB_PASSWORD` | A senha do banco (**Settings → Database**; se não lembrar, gere uma nova ali) |
+
+Depois de cadastrar os secrets, rode o workflow uma vez (push ou *Run workflow*) e a tabela é criada sozinha. Para adicionar mudanças no banco no futuro, crie um novo arquivo em `supabase/migrations/` (ex.: `20261201120000_add_coluna.sql`) e dê push — o CI aplica só o que estiver pendente.
+
+> Esses secrets do CI são **diferentes** das variáveis de runtime do Vercel: aqui é token de acesso + senha do banco (para aplicar migrations); lá é a `SUPABASE_SERVICE_ROLE_KEY` (para as funções `/api` lerem e gravarem).
+
+> Se preferir aplicar à mão em vez do CI, rode o conteúdo de `supabase/migrations/20261119000000_init.sql` no **SQL Editor** do Supabase.
 
 ---
 

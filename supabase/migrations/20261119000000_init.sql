@@ -1,5 +1,5 @@
--- Execute este script UMA VEZ no SQL Editor do Supabase
--- (Dashboard do projeto -> SQL Editor -> New query -> cole -> Run).
+-- Migration inicial: tabela de acessos + view agregada por dia.
+-- Aplicada automaticamente pelo CI (GitHub Actions -> supabase db push).
 
 -- Tabela de acessos. Cada visita vira uma linha.
 create table if not exists public.hits (

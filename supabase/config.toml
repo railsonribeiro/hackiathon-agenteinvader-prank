@@ -1,0 +1,3 @@
+# Configuração mínima da Supabase CLI (usada pelo CI para aplicar as migrations).
+# O project-ref real é informado no workflow via secret SUPABASE_PROJECT_ID.
+project_id = "hackiathon-agenteinvader-prank"
