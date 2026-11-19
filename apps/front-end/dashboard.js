@@ -132,14 +132,9 @@
 
   function renderObs(d, latency) {
     const rows = [];
-    const envOk = !!(d.env && d.env.SUPABASE_URL && d.serviceKey && d.serviceKey.present && d.anonKey && d.anonKey.present);
     const dbOk = !!(d.hits && !d.hits.error && typeof d.hits.count === 'number');
-    const svc = d.serviceKey || {};
-    const svcLabel = svc.present ? (svc.type || '—') + (svc.role ? ' · ' + svc.role : '') : 'ausente';
 
     rows.push(row(dbOk, 'Banco de dados', dbOk ? 'Conectado' : ((d.hits && d.hits.error) || 'erro')));
-    rows.push(row(envOk, 'Variáveis de ambiente', envOk ? 'URL, service e anon presentes' : 'faltando variável'));
-    rows.push(row(!!svc.present, 'Chave de serviço', svcLabel));
 
     if (d.insertHit && typeof d.insertHit === 'object') {
       rows.push(row(d.insertHit.ok, 'Escrita (insert)', d.insertHit.ok ? 'OK' : (d.insertHit.error || 'falhou')));
