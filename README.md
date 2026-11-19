@@ -37,7 +37,7 @@ Os caminhos abaixo são relativos a `apps/front-end/`.
 | `/` | `index.html` + `app.js` | Página de demonstração (isca + revelação) |
 | `/dashboard` | `dashboard.html` + `dashboard.js` | Painel de métricas de acessos |
 | `/api/hit` | `api/hit.js` | Conta um acesso (abertura da página) |
-| `/api/submit` | `api/submit.js` | Conta um clique em "Confirmar" (sem ler o formulário) |
+| `/api/submit` | `api/submit.js` | Conta um clique em "Confirmar" — no máximo 1 por IP, sem ler o formulário e sem guardar o IP |
 | `/api/metrics` | `api/metrics.js` | Devolve os dois contadores (exige login do Supabase) |
 | `/api/config` | `api/config.js` | Credenciais públicas do Supabase para o login no cliente |
 
