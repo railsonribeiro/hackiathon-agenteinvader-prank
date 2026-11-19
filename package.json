@@ -1,14 +1,13 @@
 {
-  "name": "siscritico-agenteinvader",
+  "name": "siscritico-monorepo",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
-  "description": "Demonstração de conscientização de segurança: o risco de divulgar links que apontam para domínios não registrados.",
+  "description": "Monorepo da demonstração de conscientização de segurança (siscritico.agenteinvader.com.br).",
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "vercel dev",
-    "deploy": "vercel --prod"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.45.0"
+    "dev": "npm run dev --workspace @siscritico/front-end",
+    "deploy": "npm run deploy --workspace @siscritico/front-end"
   }
 }

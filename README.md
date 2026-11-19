@@ -8,7 +8,27 @@ Quando alguém abre a página, ela mostra por alguns segundos uma tela sombria d
 
 ---
 
+## Estrutura (monorepo com npm workspaces)
+
+```
+.
+├── apps/
+│   └── front-end/        # o site + as funções /api (deploy no Vercel)
+│       ├── index.html / app.js / styles.css
+│       ├── dashboard.html / dashboard.js / dashboard.css
+│       ├── api/          # funções serverless (hit, metrics)
+│       ├── lib/          # cliente Supabase
+│       └── vercel.json
+├── supabase/             # migrations do banco (aplicadas pelo CI)
+├── .github/workflows/    # CI que roda as migrations
+└── package.json          # raiz do workspace
+```
+
+Novos apps (ex.: `apps/api`, `apps/admin`) entram em `apps/*` e o workspace os reconhece automaticamente.
+
 ## O que tem aqui
+
+Os caminhos abaixo são relativos a `apps/front-end/`.
 
 | Rota | Arquivo | O que é |
 |------|---------|---------|
@@ -39,7 +59,8 @@ Quando alguém abre a página, ela mostra por alguns segundos uma tela sombria d
 
 1. Em **https://vercel.com** → **Add New… → Project**.
 2. **Import Git Repository** e selecione `railsonribeiro/hackiathon-agenteinvader-prank`.
-3. Framework Preset: **Other** (não precisa mudar nada).
+3. **Root Directory:** clique em **Edit** e selecione **`apps/front-end`** (é aqui que estão `index.html`, `api/` e `vercel.json`).
+4. Framework Preset: **Other**. O Vercel detecta o monorepo npm workspaces e instala as dependências a partir da raiz.
 
 ### 3. Configure as variáveis de ambiente
 
@@ -97,10 +118,10 @@ Depois de cadastrar os secrets, rode o workflow uma vez (push ou *Run workflow*)
 ## Rodar localmente (opcional)
 
 ```bash
-npm install
-npm i -g vercel          # se ainda não tiver a CLI
-cp .env.example .env     # preencha SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY
-vercel dev               # sobe em http://localhost:3000
+npm install                        # na raiz: instala o workspace inteiro
+npm i -g vercel                    # se ainda não tiver a CLI
+cp apps/front-end/.env.example apps/front-end/.env   # preencha SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY
+npm run dev                        # atalho para o app front-end (vercel dev)
 ```
 
 ---
