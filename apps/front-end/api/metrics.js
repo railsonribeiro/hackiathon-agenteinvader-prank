@@ -50,14 +50,13 @@ export default async function handler(req, res) {
     const accesses = Number(accessRes.count || 0);
     const submissions = Number(submitRes.count || 0);
 
-    // Estágios 'reveal'/'official' vêm da funnel_counts; o topo do funil reusa
-    // os contadores que já existem (abriram = hits, preencheram = submissions).
+    // "Chegaram na revelação" = clique em "Confirmar" (form_submissions), que
+    // leva direto à revelação e já tem histórico. Só 'official' é evento novo.
     const stageCount = {};
     (funnelRes.data || []).forEach((r) => { stageCount[r.stage] = Number(r.count || 0); });
     const funnel = [
       { key: 'open', label: 'Abriram a página', count: accesses },
-      { key: 'form', label: 'Preencheram o formulário', count: submissions },
-      { key: 'reveal', label: 'Chegaram na revelação', count: stageCount.reveal || 0 },
+      { key: 'reveal', label: 'Chegaram na revelação', count: submissions },
       { key: 'official', label: 'Clicaram no link oficial', count: stageCount.official || 0 },
     ];
 
