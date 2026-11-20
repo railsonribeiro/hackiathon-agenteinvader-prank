@@ -154,43 +154,40 @@
       .join('');
   }
 
-  // ---- Preencheram com os dados do PDF (só contagem de caracteres) ----
+  // ---- Preencheram com os dados do PDF (só nº de campos corretos, 0..4) ----
   function renderFill(fill) {
     const box = el('fill');
     if (!box) return;
-    if (!fill || !fill.total) {
-      box.innerHTML = '<p class="muted">Nenhum envio ainda.</p>';
+    const answered = Number(fill && fill.answered) || 0;
+    if (!fill || !answered) {
+      box.innerHTML = '<p class="muted">Nenhum envio com medição ainda.</p>';
       return;
     }
-    const total = Number(fill.total) || 0;
     const allOk = Number(fill.allOk) || 0;
-    const pct = total ? Math.round((allOk / total) * 100) : 0;
+    const pct = Math.round((allOk / answered) * 100);
+    const avgPct = Number(fill.avgPct) || 0;
 
     let html =
       '<div class="fill-summary">' +
-      '<span class="fill-big">' + allOk + '<span class="fill-of">/' + total + '</span></span>' +
-      '<span class="fill-cap">preencheram os <strong>4 campos</strong> com os dados do PDF (' + pct + '%)</span>' +
+      '<span class="fill-big">' + allOk + '<span class="fill-of">/' + answered + '</span></span>' +
+      '<span class="fill-cap">acertaram os <strong>4 campos</strong> do PDF (' + pct + '%) &middot; ' +
+      'média de ' + avgPct + '% dos campos por envio</span>' +
       '</div>';
 
-    // Por campo: quantos acertaram o tamanho esperado.
-    const fields = fill.fields || {};
-    const rows = [
-      { k: 'cracha', label: 'Crachá', hint: '00994' },
-      { k: 'placa', label: 'Placa', hint: 'RQK-7A26' },
-      { k: 'sala', label: 'Sala', hint: '1407' },
-      { k: 'pedido', label: 'Pedido', hint: '471' },
-    ];
+    // Distribuição: quantos acertaram 4, 3, 2, 1 e 0 dos campos.
+    const dist = fill.distribution || {};
+    const maxBar = Math.max(1, ...[0, 1, 2, 3, 4].map((n) => Number(dist[n] || 0)));
     html += '<div class="fill-rows">';
-    rows.forEach((r) => {
-      const c = Number(fields[r.k] || 0);
-      const w = total ? Math.round((c / total) * 100) : 0;
+    for (let n = 4; n >= 0; n--) {
+      const c = Number(dist[n] || 0);
+      const w = Math.round((c / maxBar) * 100);
       html +=
         '<div class="fill-row">' +
-        '<span class="fill-lbl">' + r.label + ' <span class="fill-hint">' + esc(r.hint) + '</span></span>' +
+        '<span class="fill-lbl">' + n + ' de 4</span>' +
         '<span class="loc-bar"><span class="loc-fill" style="width:' + w + '%"></span></span>' +
         '<span class="fill-count">' + c + '</span>' +
         '</div>';
-    });
+    }
     html += '</div>';
 
     box.innerHTML = html;

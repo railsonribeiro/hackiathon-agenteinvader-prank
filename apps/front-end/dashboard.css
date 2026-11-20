@@ -115,9 +115,8 @@
 .fill-of { font-size: 16px; font-weight: 500; color: var(--muted); }
 .fill-cap { color: var(--muted); font-size: 13px; }
 .fill-rows { display: flex; flex-direction: column; gap: 5px; }
-.fill-row { display: grid; grid-template-columns: 140px 1fr 32px; align-items: center; gap: 10px; }
+.fill-row { display: grid; grid-template-columns: 56px 1fr 32px; align-items: center; gap: 10px; }
 .fill-lbl { color: #d2d6dc; font-size: 13px; }
-.fill-hint { color: var(--muted); font-size: 11px; font-family: ui-monospace, monospace; }
 .fill-count { text-align: right; color: var(--muted); font-size: 12px; }
 
 /* Selos de caminho: caiu na isca x não caiu */

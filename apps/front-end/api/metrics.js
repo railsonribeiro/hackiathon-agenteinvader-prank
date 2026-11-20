@@ -113,17 +113,24 @@ export default async function handler(req, res) {
       { key: 'feedback', label: 'Avaliaram a simulação', count: fbCount, base: reachedReveal, baseLabel: 'dos que viram a revelação' },
     ];
 
-    // Preenchimento com os dados do PDF (só contagens de caracteres por campo).
+    // Preenchimento com os dados do PDF: só quantos campos bateram (0..4) por
+    // envio. Nenhum valor digitado é guardado.
     const f = fillRes.data || {};
+    const answered = Number(f.answered || 0);
+    const correctSum = Number(f.correct_sum || 0);
     const fill = {
       total: Number(f.total || 0),
-      withLengths: Number(f.with_lengths || 0),
-      allOk: Number(f.all_ok || 0),
-      fields: {
-        cracha: Number(f.cracha_ok || 0),
-        placa: Number(f.placa_ok || 0),
-        sala: Number(f.sala_ok || 0),
-        pedido: Number(f.pedido_ok || 0),
+      answered,
+      allOk: Number(f.c4 || 0),
+      // Média de campos corretos por envio (0..4) e em %.
+      avg: answered ? correctSum / answered : 0,
+      avgPct: answered ? Math.round((correctSum / (answered * 4)) * 100) : 0,
+      distribution: {
+        0: Number(f.c0 || 0),
+        1: Number(f.c1 || 0),
+        2: Number(f.c2 || 0),
+        3: Number(f.c3 || 0),
+        4: Number(f.c4 || 0),
       },
     };
 

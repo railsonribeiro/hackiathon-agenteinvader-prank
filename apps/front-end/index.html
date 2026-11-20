@@ -35,10 +35,10 @@
         Confirme as evidências que você coletou para liberar o acesso ao Painel RQ.
       </p>
       <form id="accessForm" autocomplete="off">
-        <label>Número do crachá <input type="text" inputmode="numeric" id="fCracha" /></label>
-        <label>Placa do veículo <input type="text" id="fPlaca" /></label>
-        <label>Sala / unidade de acesso <input type="text" id="fSala" /></label>
-        <label>Código do pedido (entrega) <input type="text" id="fPedido" /></label>
+        <label>Número do crachá <input type="text" inputmode="numeric" id="fCracha" maxlength="5" /></label>
+        <label>Placa do veículo <input type="text" id="fPlaca" maxlength="8" /></label>
+        <label>Sala / unidade de acesso <input type="text" inputmode="numeric" id="fSala" maxlength="4" /></label>
+        <label>Código do pedido (entrega) <input type="text" inputmode="numeric" id="fPedido" maxlength="4" /></label>
         <button type="submit" id="confirmBtn">Confirmar e desbloquear acesso</button>
       </form>
       <p class="seal">&#128274; VALIDAÇÃO OFICIAL &middot; ACESSO SEGURO &middot; CRIPTOGRAFADO</p>
@@ -73,12 +73,12 @@
         poderia ter ido parar nas mãos erradas.
       </p>
       <div class="callout" id="revealCallout">
-        <p><strong>Fique tranquilo: o que você digitou não foi lido nem guardado.</strong></p>
+        <p><strong>Fique tranquilo: o que você digitou não saiu do seu navegador.</strong></p>
         <p class="muted">
-          Para a estatística desta ação, registramos apenas <strong>quantos
-          caracteres</strong> você digitou em cada campo &mdash; nunca o conteúdo.
-          Esta página existe só para mostrar, na prática, como um golpe de phishing
-          engana as pessoas.
+          Não lemos nem guardamos o conteúdo dos campos. Para a estatística desta
+          ação, o navegador envia apenas <strong>quantos dos campos batiam com os
+          dados do PDF</strong> &mdash; nunca o que você escreveu. Esta página existe
+          só para mostrar, na prática, como um golpe de phishing engana as pessoas.
         </p>
       </div>
       <div class="flags">

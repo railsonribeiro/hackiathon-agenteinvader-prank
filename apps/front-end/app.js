@@ -143,21 +143,21 @@
     e.preventDefault();
     if (revealed) return;
 
-    // Conta o clique em confirmar. Em vez do conteúdo (que nunca é lido nem
-    // enviado), manda só QUANTOS CARACTERES foram digitados em cada campo — dá
-    // pra ver quem preencheu com os dados do PDF, sem guardar nada identificável.
-    const len = (id) => ((el(id) && el(id).value) || '').trim().length;
-    const lengths = {
-      cracha: len('fCracha'),
-      placa: len('fPlaca'),
-      sala: len('fSala'),
-      pedido: len('fPedido'),
-    };
+    // Conta o clique em confirmar. O que foi digitado NÃO sai do navegador: aqui
+    // comparamos cada campo com o valor do PDF e enviamos só QUANTOS dos 4 campos
+    // bateram (0 a 4) — pra ver quem preencheu com os dados do PDF, sem enviar
+    // nem guardar nada do conteúdo.
+    const EXPECTED = { fCracha: '00994', fPlaca: 'RQK-7A26', fSala: '1407', fPedido: '4471' };
+    const norm = (s) => (s || '').trim().toUpperCase().replace(/\s+/g, '');
+    let correct = 0;
+    Object.keys(EXPECTED).forEach((id) => {
+      if (el(id) && norm(el(id).value) === norm(EXPECTED[id])) correct += 1;
+    });
 
     fetch('/api/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lengths }),
+      body: JSON.stringify({ correct }),
     }).catch(() => {});
 
     runScan(SCAN_FORM, 'form');
@@ -215,9 +215,10 @@
         'um site desconhecido. Você não caiu &mdash; mas vale ver como o golpe tenta enganar.');
       setHtml('revealCallout',
         '<p><strong>Você não enviou nada.</strong></p>' +
-        '<p class="muted">E, mesmo quando alguém envia, o conteúdo digitado não é lido nem ' +
-        'guardado &mdash; só a quantidade de caracteres de cada campo, para a estatística. ' +
-        'Esta página existe só para mostrar como um golpe de phishing engana as pessoas.</p>');
+        '<p class="muted">E, mesmo quando alguém envia, o conteúdo dos campos não sai do ' +
+        'navegador &mdash; ele só informa quantos campos batiam com os dados do PDF, para a ' +
+        'estatística. Esta página existe só para mostrar como um golpe de phishing engana as ' +
+        'pessoas.</p>');
       // Pergunta direcionada a quem desconfiou (reusa o campo de comentário).
       const ft = el('feedbackTitle');
       if (ft) ft.textContent = 'Você desconfiou? Conte pra gente';
