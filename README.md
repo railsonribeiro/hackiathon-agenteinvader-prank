@@ -115,7 +115,7 @@ Depois de cadastrar os secrets, rode o workflow uma vez (push ou *Run workflow*)
 ## Painel de métricas
 
 - Acesse em **`/dashboard`**.
-- Mostra: **Acessos** e **Preencheram o formulário** (contadores), **Localização dos acessos** (país/região/cidade agregados, sem IP) e um painel de **Observabilidade** (status do banco, variáveis, chave, latências).
+- Mostra: **Acessos** e **Preencheram o formulário** (contadores) e **Localização dos acessos** (país/região/cidade agregados, sem IP).
 - **Login via Supabase (e-mail + senha):** o `/dashboard` mostra um formulário de login; a API `/api/metrics` valida o token do usuário no servidor e só então devolve os dados. Qualquer usuário cadastrado no seu projeto Supabase tem acesso.
 - **Como gerenciar quem entra:** em **Supabase → Authentication → Users**, clique em **Add user** para criar cada admin (e-mail + senha). Para revogar o acesso de alguém, basta remover/desativar o usuário ali. O Supabase registra os logins (rastreabilidade por pessoa).
 - Garanta que o provedor **Email** está habilitado em **Authentication → Providers** (vem ligado por padrão). Para esta demo, desligar a confirmação por e-mail facilita criar usuários direto no painel.

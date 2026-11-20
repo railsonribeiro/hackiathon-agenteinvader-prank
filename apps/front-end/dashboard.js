@@ -2,7 +2,6 @@
   const el = (id) => document.getElementById(id);
   let sb = null;
   let accessToken = null;
-  let metricsLatency = null;
 
   init();
 
@@ -31,8 +30,6 @@
 
     el('loginForm').addEventListener('submit', onLogin);
     el('logout').addEventListener('click', onLogout);
-    el('obsRefresh').addEventListener('click', () => loadObservability(false));
-    el('obsWrite').addEventListener('click', () => loadObservability(true));
 
     const { data } = await sb.auth.getSession();
     if (data && data.session) showAuthed(data.session);
@@ -78,19 +75,16 @@
     el('content').classList.remove('hidden');
     el('whoami').textContent = (session.user && session.user.email) || '';
     loadMetrics();
-    loadObservability(false);
   }
 
   // ---- Métricas de negócio ----
   function loadMetrics() {
-    const t0 = performance.now();
     fetch('/api/metrics', { headers: { Authorization: 'Bearer ' + accessToken } })
       .then((r) => {
         if (r.status === 401 || r.status === 403) throw new Error('unauthorized');
         return r.json();
       })
       .then((data) => {
-        metricsLatency = Math.round(performance.now() - t0);
         el('accesses').textContent = data.accesses || 0;
         el('submissions').textContent = data.submissions || 0;
         renderLocations(data.locations || []);
@@ -127,52 +121,6 @@
       .join('');
   }
 
-  // ---- Observabilidade / diagnóstico ----
-  function loadObservability(write) {
-    el('obsRows').innerHTML = '<p class="muted">Carregando…</p>';
-    const url = '/api/debug' + (write ? '?write=1' : '');
-    const t0 = performance.now();
-    fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } })
-      .then((r) => r.json())
-      .then((d) => renderObs(d, Math.round(performance.now() - t0)))
-      .catch(() => {
-        el('obsRows').innerHTML = '<p class="muted">Falha ao carregar o diagnóstico.</p>';
-      });
-  }
-
-  function renderObs(d, latency) {
-    const rows = [];
-    const dbOk = !!(d.hits && !d.hits.error && typeof d.hits.count === 'number');
-
-    rows.push(row(dbOk, 'Banco de dados', dbOk ? 'Conectado' : ((d.hits && d.hits.error) || 'erro')));
-
-    if (d.insertHit && typeof d.insertHit === 'object') {
-      rows.push(row(d.insertHit.ok, 'Escrita (insert)', d.insertHit.ok ? 'OK' : (d.insertHit.error || 'falhou')));
-    } else {
-      rows.push(rowNeutral('Escrita (insert)', 'não testada — use "Testar escrita"'));
-    }
-
-    rows.push(rowNeutral('Latência /api/debug', latency + ' ms'));
-    if (metricsLatency != null) rows.push(rowNeutral('Latência /api/metrics', metricsLatency + ' ms'));
-
-    el('obsRows').innerHTML = rows.join('');
-    el('obsJson').textContent = JSON.stringify(d, null, 2);
-  }
-
-  function row(good, label, value) {
-    return (
-      '<div class="obs-row"><span class="dot ' + (good ? 'dot-ok' : 'dot-bad') + '"></span>' +
-      '<span class="obs-label">' + esc(label) + '</span>' +
-      '<span class="obs-val">' + esc(value) + '</span></div>'
-    );
-  }
-  function rowNeutral(label, value) {
-    return (
-      '<div class="obs-row"><span class="dot dot-neutral"></span>' +
-      '<span class="obs-label">' + esc(label) + '</span>' +
-      '<span class="obs-val">' + esc(value) + '</span></div>'
-    );
-  }
   function esc(s) {
     return String(s).replace(/[&<>"']/g, (c) =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
