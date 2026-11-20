@@ -33,10 +33,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [accessRes, submitRes, locRes] = await Promise.all([
+    const [accessRes, submitRes, locRes, funnelRes, sourceRes] = await Promise.all([
       supabase.from('hits').select('*', { count: 'exact', head: true }),
       supabase.from('form_submissions').select('*', { count: 'exact', head: true }),
       supabase.from('hits_by_location').select('*').limit(50),
+      supabase.from('funnel_counts').select('*'),
+      supabase.from('hits_by_source').select('*').limit(50),
     ]);
 
     const locations = (locRes.data || []).map((r) => ({
@@ -46,11 +48,32 @@ export default async function handler(req, res) {
       count: Number(r.count || 0),
     }));
 
+    const accesses = Number(accessRes.count || 0);
+    const submissions = Number(submitRes.count || 0);
+
+    // Estágios 'reveal'/'official' vêm da funnel_counts; o topo do funil reusa
+    // os contadores que já existem (abriram = hits, preencheram = submissions).
+    const stageCount = {};
+    (funnelRes.data || []).forEach((r) => { stageCount[r.stage] = Number(r.count || 0); });
+    const funnel = [
+      { key: 'open', label: 'Abriram a página', count: accesses },
+      { key: 'form', label: 'Preencheram o formulário', count: submissions },
+      { key: 'reveal', label: 'Chegaram na revelação', count: stageCount.reveal || 0 },
+      { key: 'official', label: 'Clicaram no link oficial', count: stageCount.official || 0 },
+    ];
+
+    const sources = (sourceRes.data || []).map((r) => ({
+      source: r.source || 'direto',
+      count: Number(r.count || 0),
+    }));
+
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json({
-      accesses: Number(accessRes.count || 0),
-      submissions: Number(submitRes.count || 0),
+      accesses,
+      submissions,
       locations,
+      funnel,
+      sources,
     });
   } catch (err) {
     res.status(500).json({ error: 'metrics_unavailable' });
