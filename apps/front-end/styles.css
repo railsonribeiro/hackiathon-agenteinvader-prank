@@ -191,4 +191,34 @@ body {
 }
 .foot a { color: var(--red-soft); text-decoration: none; }
 .foot a:hover { text-decoration: underline; }
+
+/* Feedback da revelação */
+.feedback {
+  margin: 20px 0 0; padding: 16px 16px 14px; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.feedback-title { font-size: 15px; margin: 0 0 12px; text-align: center; color: #fff; }
+.stars { display: flex; justify-content: center; gap: 6px; }
+.star {
+  background: none; border: none; cursor: pointer; padding: 2px;
+  font-size: 30px; line-height: 1; color: rgba(255, 255, 255, 0.18);
+  transition: color 0.12s, transform 0.12s;
+}
+.star:hover { transform: scale(1.1); }
+.star.on { color: #ffc23d; text-shadow: 0 0 12px rgba(255, 194, 61, 0.5); }
+#feedbackComment {
+  width: 100%; margin-top: 12px; padding: 10px 12px; border-radius: 8px; resize: vertical;
+  background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff; font: inherit; font-size: 13px;
+}
+#feedbackComment:focus { outline: none; border-color: var(--red); }
+#feedbackSubmit {
+  width: 100%; margin-top: 12px; padding: 11px 16px; border: none; border-radius: 8px;
+  color: #fff; font-weight: 600; font-size: 14px; cursor: pointer;
+  background: linear-gradient(90deg, var(--red), var(--red-soft));
+}
+#feedbackSubmit:hover { filter: brightness(1.05); }
+#feedbackSubmit:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
+.feedback-hint { color: var(--muted); font-size: 11.5px; text-align: center; margin: 8px 0 0; }
+.feedback-thanks { color: #37d07a; font-size: 14px; text-align: center; margin: 4px 0 0; line-height: 1.6; }
 strong { color: #fff; }

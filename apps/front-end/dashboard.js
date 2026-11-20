@@ -88,6 +88,7 @@
         el('accesses').textContent = data.accesses || 0;
         el('submissions').textContent = data.submissions || 0;
         renderFunnel(data.funnel || []);
+        renderFeedback(data.feedback || null);
         renderLocations(data.locations || []);
       })
       .catch((err) => {
@@ -126,6 +127,58 @@
         );
       })
       .join('');
+  }
+
+  // ---- Avaliações da simulação ----
+  function renderFeedback(fb) {
+    const box = el('feedback');
+    if (!box) return;
+    if (!fb || !fb.count) {
+      box.innerHTML = '<p class="muted">Nenhuma avaliação ainda.</p>';
+      return;
+    }
+    const starsOf = (n) => '★★★★★☆☆☆☆☆'.slice(5 - n, 10 - n);
+
+    // Resumo: média + total.
+    let html =
+      '<div class="fb-summary">' +
+      '<span class="fb-avg">' + fb.avg.toFixed(1) + '</span>' +
+      '<span class="fb-avg-stars">' + starsOf(Math.round(fb.avg)) + '</span>' +
+      '<span class="fb-total">' + fb.count + (fb.count === 1 ? ' avaliação' : ' avaliações') + '</span>' +
+      '</div>';
+
+    // Distribuição 5★ -> 1★.
+    const dist = fb.distribution || {};
+    const maxBar = Math.max(1, ...[1, 2, 3, 4, 5].map((n) => Number(dist[n] || 0)));
+    html += '<div class="fb-dist">';
+    for (let n = 5; n >= 1; n--) {
+      const c = Number(dist[n] || 0);
+      const pct = Math.round((c / maxBar) * 100);
+      html +=
+        '<div class="fb-dist-row">' +
+        '<span class="fb-dist-lbl">' + n + '★</span>' +
+        '<span class="loc-bar"><span class="loc-fill" style="width:' + pct + '%"></span></span>' +
+        '<span class="fb-dist-count">' + c + '</span>' +
+        '</div>';
+    }
+    html += '</div>';
+
+    // Comentários recentes.
+    const comments = fb.comments || [];
+    if (comments.length) {
+      html += '<div class="fb-comments"><p class="fb-comments-title">Comentários</p>';
+      html += comments
+        .map((c) => (
+          '<div class="fb-comment">' +
+          '<span class="fb-comment-stars">' + starsOf(c.rating) + '</span>' +
+          '<span class="fb-comment-text">' + esc(c.comment) + '</span>' +
+          '</div>'
+        ))
+        .join('');
+      html += '</div>';
+    }
+
+    box.innerHTML = html;
   }
 
   // ---- Localização dos acessos ----

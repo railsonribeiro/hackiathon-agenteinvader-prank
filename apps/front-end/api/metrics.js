@@ -33,11 +33,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [accessRes, submitRes, locRes, funnelRes] = await Promise.all([
+    const [accessRes, submitRes, locRes, funnelRes, fbStatsRes, fbRowsRes] = await Promise.all([
       supabase.from('hits').select('*', { count: 'exact', head: true }),
       supabase.from('form_submissions').select('*', { count: 'exact', head: true }),
       supabase.from('hits_by_location').select('*').limit(50),
       supabase.from('funnel_counts').select('*'),
+      supabase.from('feedback_stats').select('*').single(),
+      supabase.from('feedback').select('rating, comment, created_at').order('created_at', { ascending: false }).limit(200),
     ]);
 
     const locations = (locRes.data || []).map((r) => ({
@@ -54,10 +56,23 @@ export default async function handler(req, res) {
     // leva direto à revelação e já tem histórico. Só 'official' é evento novo.
     const stageCount = {};
     (funnelRes.data || []).forEach((r) => { stageCount[r.stage] = Number(r.count || 0); });
+
+    // Feedback: total, média, distribuição das notas e comentários recentes.
+    const fbRows = fbRowsRes.data || [];
+    const fbCount = Number((fbStatsRes.data && fbStatsRes.data.count) || fbRows.length || 0);
+    const fbAvg = Number((fbStatsRes.data && fbStatsRes.data.avg_rating) || 0);
+    const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    fbRows.forEach((r) => { const n = Number(r.rating); if (distribution[n] != null) distribution[n] += 1; });
+    const comments = fbRows
+      .filter((r) => r.comment)
+      .slice(0, 50)
+      .map((r) => ({ rating: Number(r.rating), comment: r.comment, created_at: r.created_at }));
+
     const funnel = [
       { key: 'open', label: 'Abriram a página', count: accesses },
       { key: 'reveal', label: 'Chegaram na revelação', count: submissions },
       { key: 'official', label: 'Clicaram no link oficial', count: stageCount.official || 0 },
+      { key: 'feedback', label: 'Avaliaram a simulação', count: fbCount },
     ];
 
     res.setHeader('Cache-Control', 'no-store');
@@ -66,6 +81,7 @@ export default async function handler(req, res) {
       submissions,
       locations,
       funnel,
+      feedback: { count: fbCount, avg: fbAvg, distribution, comments },
     });
   } catch (err) {
     res.status(500).json({ error: 'metrics_unavailable' });
