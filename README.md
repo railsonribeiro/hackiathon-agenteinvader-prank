@@ -39,7 +39,8 @@ Os caminhos abaixo são relativos a `apps/front-end/`.
 | `/api/hit` | `api/hit.js` | Conta um acesso (abertura da página) |
 | `/api/submit` | `api/submit.js` | Conta um clique em "Confirmar" — no máximo 1 por IP, sem ler o formulário e sem guardar o IP |
 | `/api/event` | `api/event.js` | Conta o clique no link oficial na revelação (`official`) |
-| `/api/metrics` | `api/metrics.js` | Devolve contadores e funil (exige login do Supabase) |
+| `/api/feedback` | `api/feedback.js` | Salva a avaliação da revelação (nota 1-5 + comentário opcional) |
+| `/api/metrics` | `api/metrics.js` | Devolve contadores, funil e avaliações (exige login do Supabase) |
 | `/api/config` | `api/config.js` | Credenciais públicas do Supabase para o login no cliente |
 
 - **Front-end:** HTML/CSS/JS puro, sem framework e sem build.
@@ -116,8 +117,9 @@ Depois de cadastrar os secrets, rode o workflow uma vez (push ou *Run workflow*)
 ## Painel de métricas
 
 - Acesse em **`/dashboard`**.
-- Mostra: **Acessos** e **Chegaram na revelação** (contadores), **Funil de conversão** (Abriram → Chegaram na revelação → Clicaram no link oficial, com conversão por etapa) e **Localização dos acessos** (país/região/cidade agregados, sem IP).
+- Mostra: **Acessos** e **Chegaram na revelação** (contadores), **Funil de conversão** (Abriram → Chegaram na revelação → Clicaram no link oficial → Avaliaram a simulação, com conversão por etapa), **Avaliações da simulação** (média, distribuição das notas e comentários) e **Localização dos acessos** (país/região/cidade agregados, sem IP).
 - **"Chegaram na revelação"** = clique em *"Confirmar e desbloquear acesso"* (deduplicado por IP). Como o clique leva direto à revelação, é a mesma métrica — e reusa o contador que já tinha histórico.
+- **Avaliações:** na revelação há um formulário de feedback (nota de 1 a 5 + comentário opcional) sobre a ideia da simulação. É anônimo (sem IP) e fica persistido na tabela `feedback`.
 - **Privacidade:** todo o funil é contagem agregada por etapa, sem IP e sem cookie.
 - **Login via Supabase (e-mail + senha):** o `/dashboard` mostra um formulário de login; a API `/api/metrics` valida o token do usuário no servidor e só então devolve os dados. Qualquer usuário cadastrado no seu projeto Supabase tem acesso.
 - **Como gerenciar quem entra:** em **Supabase → Authentication → Users**, clique em **Add user** para criar cada admin (e-mail + senha). Para revogar o acesso de alguém, basta remover/desativar o usuário ali. O Supabase registra os logins (rastreabilidade por pessoa).

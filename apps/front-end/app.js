@@ -19,6 +19,47 @@
   const official = el('officialLink');
   if (official) official.addEventListener('click', () => track('official'));
 
+  // Feedback da revelação: estrelas 1-5 + comentário opcional.
+  (function feedback() {
+    const form = el('feedbackForm');
+    if (!form) return;
+    const starsBox = el('stars');
+    const stars = starsBox ? Array.from(starsBox.querySelectorAll('.star')) : [];
+    const submit = el('feedbackSubmit');
+    const hint = el('feedbackHint');
+    let rating = 0;
+
+    const paint = () => {
+      stars.forEach((s) => s.classList.toggle('on', Number(s.dataset.value) <= rating));
+    };
+    stars.forEach((s) => {
+      s.addEventListener('click', () => {
+        rating = Number(s.dataset.value);
+        paint();
+        if (submit) submit.disabled = false;
+        if (hint) hint.textContent = '';
+      });
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (rating < 1) return;
+      if (submit) submit.disabled = true;
+      const comment = (el('feedbackComment') && el('feedbackComment').value) || '';
+
+      fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating, comment }),
+      }).catch(() => {});
+
+      // Mostra o agradecimento independente da resposta (não trava o usuário).
+      form.classList.add('hidden');
+      const thanks = el('feedbackThanks');
+      if (thanks) thanks.classList.remove('hidden');
+    });
+  })();
+
   // "Último dia" sempre com a data de hoje — clássico golpe de urgência.
   (function deadline() {
     const t = el('today');
