@@ -19,7 +19,7 @@
         <p class="promo-headline">Voc&ecirc; est&aacute; a <strong>um passo</strong> de concluir o desafio e <strong>garantir o 1&ordm; lugar</strong>!</p>
         <p class="promo-deadline">&#9888;&#65039; HOJE, <span id="today">&mdash;</span>, &eacute; o &uacute;ltimo dia para concluir &mdash; n&atilde;o perca o prazo!</p>
         <p class="promo-sub">Confirme as evid&ecirc;ncias coletadas para <strong>desbloquear o acesso ao Painel RQ</strong> e finalizar sua participa&ccedil;&atilde;o.</p>
-        <p class="promo-urgency">&#9203; Sua sess&atilde;o de valida&ccedil;&atilde;o expira em <span id="countdown">05:00</span> &middot; conclua agora</p>
+        <p class="promo-urgency">&#9203; Sua sess&atilde;o de valida&ccedil;&atilde;o expira em <span id="countdown">06:00</span> &middot; conclua agora</p>
       </div>
       <div class="brandmark" aria-hidden="true">
         <svg class="rq-logo" viewBox="0 0 64 74" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -63,16 +63,16 @@
 
     <!-- ETAPA 3: revelação / aviso de simulação -->
     <section id="reveal" class="card reveal hidden" tabindex="-1" aria-labelledby="revealTitle">
-      <div class="warn" aria-hidden="true">&#9888;</div>
+      <div class="warn" id="revealIcon" aria-hidden="true">&#9888;</div>
       <h1 class="title danger" id="revealTitle">PARE.</h1>
-      <p class="lead">Isto foi uma <strong>simulação</strong>.</p>
-      <p class="body">
+      <p class="lead" id="revealLead">Isto foi uma <strong>simulação</strong>.</p>
+      <p class="body" id="revealBody">
         Você acabou de preencher e "enviar" dados em uma página hospedada num
         domínio que estava <strong>livre para qualquer pessoa registrar</strong> &mdash;
         inclusive um golpista. Em um ataque de verdade, tudo o que você digitasse
         poderia ter ido parar nas mãos erradas.
       </p>
-      <div class="callout">
+      <div class="callout" id="revealCallout">
         <p><strong>Fique tranquilo: nada do que você digitou foi enviado ou guardado.</strong></p>
         <p class="muted">
           Esta página não armazena nenhum dado seu. Ela existe só para mostrar, na
@@ -97,7 +97,7 @@
 
       <!-- Feedback: avalie a ideia da simulação. Só nota + comentário; anônimo. -->
       <section id="feedback" class="feedback">
-        <h2 class="feedback-title">O que você achou desta simulação?</h2>
+        <h2 class="feedback-title" id="feedbackTitle">O que você achou desta simulação?</h2>
         <form id="feedbackForm">
           <div class="stars" id="stars" role="radiogroup" aria-label="Nota de 1 a 5 estrelas">
             <button type="button" class="star" data-value="1" role="radio" aria-checked="false" tabindex="0" aria-label="1 estrela">&#9733;</button>
