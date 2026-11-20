@@ -121,7 +121,7 @@
   (function countdown() {
     const cd = el('countdown');
     if (!cd) return;
-    let secs = 6 * 60;
+    let secs = 5 * 60;
     const tick = () => {
       secs = Math.max(0, secs - 1);
       const m = String(Math.floor(secs / 60)).padStart(2, '0');
