@@ -2,6 +2,8 @@
   const el = (id) => document.getElementById(id);
   let sb = null;
   let accessToken = null;
+  let locData = { country: [], state: [], city: [] };
+  let locLevel = 'state'; // padrão: estado
 
   init();
 
@@ -30,6 +32,20 @@
 
     el('loginForm').addEventListener('submit', onLogin);
     el('logout').addEventListener('click', onLogout);
+
+    // Toggle de nível da localização (País / Estado / Cidade).
+    const toggle = el('locToggle');
+    if (toggle) {
+      toggle.addEventListener('click', (e) => {
+        const btn = e.target.closest('.seg-btn');
+        if (!btn) return;
+        locLevel = btn.dataset.level;
+        Array.from(toggle.querySelectorAll('.seg-btn')).forEach((b) =>
+          b.classList.toggle('active', b === btn)
+        );
+        renderLocations();
+      });
+    }
 
     const { data } = await sb.auth.getSession();
     if (data && data.session) showAuthed(data.session);
@@ -89,7 +105,13 @@
         el('submissions').textContent = data.submissions || 0;
         renderFunnel(data.funnel || []);
         renderFeedback(data.feedback || null);
-        renderLocations(data.locations || []);
+        const loc = data.locations || {};
+        locData = {
+          country: loc.country || [],
+          state: loc.state || [],
+          city: loc.city || [],
+        };
+        renderLocations();
       })
       .catch((err) => {
         el('note').textContent =
@@ -181,18 +203,25 @@
     box.innerHTML = html;
   }
 
-  // ---- Localização dos acessos ----
-  function renderLocations(locations) {
+  // ---- Localização dos acessos (País / Estado / Cidade) ----
+  function locLabel(l, level) {
+    if (level === 'country') return l.country || '—';
+    if (level === 'state') return [l.region, l.country].filter(Boolean).join(' · ') || '—';
+    return [l.city, l.region, l.country].filter(Boolean).join(', ') || '—';
+  }
+
+  function renderLocations() {
     const box = el('locations');
     if (!box) return;
-    if (!locations.length) {
+    const rows = locData[locLevel] || [];
+    if (!rows.length) {
       box.innerHTML = '<p class="muted">Nenhum acesso ainda.</p>';
       return;
     }
-    const max = Math.max(1, ...locations.map((l) => l.count));
-    box.innerHTML = locations
+    const max = Math.max(1, ...rows.map((l) => l.count));
+    box.innerHTML = rows
       .map((l) => {
-        const place = [l.city, l.region, l.country].filter(Boolean).join(', ') || '—';
+        const place = locLabel(l, locLevel);
         const pct = Math.round((l.count / max) * 100);
         return (
           '<div class="loc-row">' +

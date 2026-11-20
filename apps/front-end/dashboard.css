@@ -69,7 +69,15 @@
 .linkbtn:hover { color: #fff; border-color: var(--red); }
 
 /* Localização dos acessos */
-.loc-rows { margin-top: 4px; }
+.loc-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.seg { display: inline-flex; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 999px; padding: 2px; }
+.seg-btn {
+  background: none; border: none; cursor: pointer; color: var(--muted);
+  font: inherit; font-size: 12px; padding: 5px 12px; border-radius: 999px; transition: background 0.12s, color 0.12s;
+}
+.seg-btn:hover { color: #fff; }
+.seg-btn.active { background: linear-gradient(90deg, var(--red), var(--red-soft)); color: #fff; }
+.loc-rows { margin-top: 10px; }
 .loc-row {
   display: grid; grid-template-columns: 1fr 120px 44px; align-items: center;
   gap: 12px; margin: 7px 0;

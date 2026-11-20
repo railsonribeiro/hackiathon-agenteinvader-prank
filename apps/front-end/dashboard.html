@@ -57,9 +57,16 @@
       </section>
 
       <section class="panel">
-        <h2>Localização dos acessos</h2>
+        <div class="loc-head">
+          <h2>Localização dos acessos</h2>
+          <div class="seg" id="locToggle" role="tablist">
+            <button type="button" class="seg-btn" data-level="country">País</button>
+            <button type="button" class="seg-btn active" data-level="state">Estado</button>
+            <button type="button" class="seg-btn" data-level="city">Cidade</button>
+          </div>
+        </div>
         <div id="locations" class="loc-rows"><p class="muted">Carregando&hellip;</p></div>
-        <p class="loc-note">Localização agregada (país/região/cidade). Sem IP e sem dados que identifiquem o usuário.</p>
+        <p class="loc-note">Agregado por país, estado ou cidade. Sem IP e sem dados que identifiquem o usuário.</p>
       </section>
     </div>
 
