@@ -117,7 +117,7 @@ Depois de cadastrar os secrets, rode o workflow uma vez (push ou *Run workflow*)
 ## Painel de métricas
 
 - Acesse em **`/dashboard`**.
-- Mostra: **Acessos** e **Chegaram na revelação** (contadores), **Funil de conversão** (Abriram → Chegaram na revelação → Clicaram no link oficial → Avaliaram a simulação, com conversão por etapa), **Avaliações da simulação** (média, distribuição das notas e comentários) e **Localização dos acessos** (país/região/cidade agregados, sem IP).
+- Mostra: **Acessos** e **Chegaram na revelação** (contadores), **Funil de conversão** (Abriram → Chegaram na revelação → Clicaram no link oficial → Avaliaram a simulação, com conversão por etapa), **Avaliações da simulação** (média, distribuição das notas e comentários) e **Localização dos acessos** — um card com alternância entre **País / Estado / Cidade** (padrão: Estado), agregado e sem IP.
 - **"Chegaram na revelação"** = clique em *"Confirmar e desbloquear acesso"* (deduplicado por IP). Como o clique leva direto à revelação, é a mesma métrica — e reusa o contador que já tinha histórico.
 - **Avaliações:** na revelação há um formulário de feedback (nota de 1 a 5 + comentário opcional) sobre a ideia da simulação. É anônimo (sem IP) e fica persistido na tabela `feedback`.
 - **Privacidade:** todo o funil é contagem agregada por etapa, sem IP e sem cookie.

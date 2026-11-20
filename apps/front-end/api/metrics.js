@@ -33,21 +33,35 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [accessRes, submitRes, locRes, funnelRes, fbStatsRes, fbRowsRes] = await Promise.all([
+    const [accessRes, submitRes, countryRes, regionRes, cityRes, funnelRes, fbStatsRes, fbRowsRes] = await Promise.all([
       supabase.from('hits').select('*', { count: 'exact', head: true }),
       supabase.from('form_submissions').select('*', { count: 'exact', head: true }),
-      supabase.from('hits_by_location').select('*').limit(50),
+      supabase.from('hits_by_country').select('*').limit(100),
+      supabase.from('hits_by_region').select('*').limit(100),
+      supabase.from('hits_by_location').select('*').limit(100),
       supabase.from('funnel_counts').select('*'),
       supabase.from('feedback_stats').select('*').single(),
       supabase.from('feedback').select('rating, comment, created_at').order('created_at', { ascending: false }).limit(200),
     ]);
 
-    const locations = (locRes.data || []).map((r) => ({
-      country: r.country || '—',
-      region: r.region || '',
-      city: r.city || '',
-      count: Number(r.count || 0),
-    }));
+    // Localização em três níveis (o painel troca entre eles; padrão: estado).
+    const locations = {
+      country: (countryRes.data || []).map((r) => ({
+        country: r.country || '—',
+        count: Number(r.count || 0),
+      })),
+      state: (regionRes.data || []).map((r) => ({
+        country: r.country || '—',
+        region: r.region || '',
+        count: Number(r.count || 0),
+      })),
+      city: (cityRes.data || []).map((r) => ({
+        country: r.country || '—',
+        region: r.region || '',
+        city: r.city || '',
+        count: Number(r.count || 0),
+      })),
+    };
 
     const accesses = Number(accessRes.count || 0);
     const submissions = Number(submitRes.count || 0);
