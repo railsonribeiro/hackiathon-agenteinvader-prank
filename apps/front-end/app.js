@@ -1,7 +1,7 @@
 (() => {
   const el = (id) => document.getElementById(id);
 
-  // Dispara um estágio do funil (reveal/official). Agregado, sem dado do usuário.
+  // Dispara um estágio do funil (official). Agregado, sem dado do usuário.
   const track = (stage) =>
     fetch('/api/event', {
       method: 'POST',
@@ -82,7 +82,6 @@
         setTimeout(() => {
           el('scan').classList.add('hidden');
           el('reveal').classList.remove('hidden');
-          track('reveal');
         }, 750);
       }
     })();

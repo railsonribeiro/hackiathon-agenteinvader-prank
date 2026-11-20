@@ -2,13 +2,13 @@
 -- referrer. São apenas contagens por etapa.
 
 -- ----------------------------------------------------------------------------
--- Estágios do funil posteriores à abertura
+-- Estágios do funil que ainda não tinham contador próprio
 -- ----------------------------------------------------------------------------
--- O topo do funil (aberturas) e o "preencheram" já vêm das tabelas hits e
--- form_submissions. Aqui ficam só os dois estágios novos:
---   'reveal'   -> chegou na tela de revelação ("PARE / foi uma simulação")
---   'official' -> clicou no link oficial do hackathon na revelação
--- Contagem bruta de passagens por etapa (sem IP, sem dedup).
+-- Abriram (hits) e "chegaram na revelação" (= clique em Confirmar,
+-- form_submissions) já têm contadores com histórico. Aqui fica só o estágio
+-- novo:
+--   'official' -> clicou no link oficial do hackathon, na revelação
+-- Contagem bruta de passagens (sem IP, sem dedup).
 create table if not exists public.funnel_events (
   id         bigint generated always as identity primary key,
   created_at timestamptz not null default now(),

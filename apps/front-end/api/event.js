@@ -1,9 +1,10 @@
 import { supabase } from '../lib/supabase.js';
 
-// Estágios do funil aceitos (os posteriores à abertura/preenchimento).
-//   reveal   -> chegou na tela de revelação
-//   official -> clicou no link oficial do hackathon
-const STAGES = new Set(['reveal', 'official']);
+// Estágios do funil aceitos (os posteriores ao clique em "Confirmar").
+//   official -> clicou no link oficial do hackathon, na revelação
+// Obs.: "chegou na revelação" NÃO é registrado aqui — é o próprio clique em
+// "Confirmar" (/api/submit), que já tem histórico.
+const STAGES = new Set(['official']);
 
 // Registra UMA passagem por um estágio do funil. Agregado: grava só qual etapa
 // foi atingida. Sem IP, sem cookie, sem nada que identifique o usuário.
