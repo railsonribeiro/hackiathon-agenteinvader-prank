@@ -33,7 +33,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [accessRes, submitRes, countryRes, regionRes, cityRes, funnelRes, fbStatsRes, fbRowsRes] = await Promise.all([
+    const [accessRes, submitRes, countryRes, regionRes, cityRes, funnelRes, fbStatsRes, fbRowsRes, fillRes] = await Promise.all([
       supabase.from('hits').select('*', { count: 'exact', head: true }),
       supabase.from('form_submissions').select('*', { count: 'exact', head: true }),
       supabase.from('hits_by_country').select('*').limit(100),
@@ -42,6 +42,7 @@ export default async function handler(req, res) {
       supabase.from('funnel_counts').select('*'),
       supabase.from('feedback_stats').select('*').single(),
       supabase.from('feedback').select('rating, comment, path, country, region, city, created_at').order('created_at', { ascending: false }).limit(200),
+      supabase.from('submission_fill').select('*').single(),
     ]);
 
     // Localização em três níveis (o painel troca entre eles; padrão: estado).
@@ -112,6 +113,27 @@ export default async function handler(req, res) {
       { key: 'feedback', label: 'Avaliaram a simulação', count: fbCount, base: reachedReveal, baseLabel: 'dos que viram a revelação' },
     ];
 
+    // Preenchimento com os dados do PDF: só quantos campos bateram (0..4) por
+    // envio. Nenhum valor digitado é guardado.
+    const f = fillRes.data || {};
+    const answered = Number(f.answered || 0);
+    const correctSum = Number(f.correct_sum || 0);
+    const fill = {
+      total: Number(f.total || 0),
+      answered,
+      allOk: Number(f.c4 || 0),
+      // Média de campos corretos por envio (0..4) e em %.
+      avg: answered ? correctSum / answered : 0,
+      avgPct: answered ? Math.round((correctSum / (answered * 4)) * 100) : 0,
+      distribution: {
+        0: Number(f.c0 || 0),
+        1: Number(f.c1 || 0),
+        2: Number(f.c2 || 0),
+        3: Number(f.c3 || 0),
+        4: Number(f.c4 || 0),
+      },
+    };
+
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json({
       accesses,
@@ -119,6 +141,7 @@ export default async function handler(req, res) {
       locations,
       funnel,
       feedback: { count: fbCount, avg: fbAvg, distribution, byPath, comments },
+      fill,
     });
   } catch (err) {
     res.status(500).json({ error: 'metrics_unavailable' });

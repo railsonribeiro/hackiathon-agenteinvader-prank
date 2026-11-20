@@ -14,20 +14,35 @@ function clientIpHash(req) {
   return createHash('sha256').update(IP_SALT + ip).digest('hex');
 }
 
+// Nº de campos corretos válido: inteiro 0–4, senão nulo. É só isso que o
+// navegador manda — a comparação com os dados do PDF é feita lá, e o conteúdo
+// digitado nunca chega aqui.
+function correctCount(v) {
+  const n = Number(v);
+  if (!Number.isInteger(n) || n < 0 || n > 4) return null;
+  return n;
+}
+
 // Conta UM clique no botão "Confirmar" do formulário de simulação.
-// IMPORTANTE: não recebe, não lê e não guarda nada do que foi digitado —
-// registra apenas que alguém clicou em confirmar. E conta no máximo uma vez
-// por IP: cliques repetidos da mesma pessoa não inflam as métricas.
+// IMPORTANTE: não recebe o CONTEÚDO do que foi digitado — só quantos dos 4
+// campos batiam com os dados do PDF (0 a 4), para ver quem preencheu com os
+// dados do PDF. E conta no máximo uma vez por IP: cliques repetidos da mesma
+// pessoa não inflam as métricas.
 export default async function handler(req, res) {
   try {
     const ipHash = clientIpHash(req);
+    const correct = correctCount(req.body && req.body.correct);
 
     // upsert com ignoreDuplicates => INSERT ... ON CONFLICT (ip_hash) DO NOTHING.
     // O 2º clique do mesmo IP bate no índice único e é ignorado, sem erro.
     await supabase
       .from('form_submissions')
       .upsert(
-        { ip_hash: ipHash, created_at: new Date().toISOString() },
+        {
+          ip_hash: ipHash,
+          created_at: new Date().toISOString(),
+          correct_count: correct,
+        },
         { onConflict: 'ip_hash', ignoreDuplicates: true },
       );
 

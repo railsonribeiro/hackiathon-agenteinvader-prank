@@ -104,6 +104,7 @@
         el('accesses').textContent = data.accesses || 0;
         el('submissions').textContent = data.submissions || 0;
         renderFunnel(data.funnel || []);
+        renderFill(data.fill || null);
         renderFeedback(data.feedback || null);
         const loc = data.locations || {};
         locData = {
@@ -151,6 +152,45 @@
         );
       })
       .join('');
+  }
+
+  // ---- Preencheram com os dados do PDF (só nº de campos corretos, 0..4) ----
+  function renderFill(fill) {
+    const box = el('fill');
+    if (!box) return;
+    const answered = Number(fill && fill.answered) || 0;
+    if (!fill || !answered) {
+      box.innerHTML = '<p class="muted">Nenhum envio com medição ainda.</p>';
+      return;
+    }
+    const allOk = Number(fill.allOk) || 0;
+    const pct = Math.round((allOk / answered) * 100);
+    const avgPct = Number(fill.avgPct) || 0;
+
+    let html =
+      '<div class="fill-summary">' +
+      '<span class="fill-big">' + allOk + '<span class="fill-of">/' + answered + '</span></span>' +
+      '<span class="fill-cap">acertaram os <strong>4 campos</strong> do PDF (' + pct + '%) &middot; ' +
+      'média de ' + avgPct + '% dos campos por envio</span>' +
+      '</div>';
+
+    // Distribuição: quantos acertaram 4, 3, 2, 1 e 0 dos campos.
+    const dist = fill.distribution || {};
+    const maxBar = Math.max(1, ...[0, 1, 2, 3, 4].map((n) => Number(dist[n] || 0)));
+    html += '<div class="fill-rows">';
+    for (let n = 4; n >= 0; n--) {
+      const c = Number(dist[n] || 0);
+      const w = Math.round((c / maxBar) * 100);
+      html +=
+        '<div class="fill-row">' +
+        '<span class="fill-lbl">' + n + ' de 4</span>' +
+        '<span class="loc-bar"><span class="loc-fill" style="width:' + w + '%"></span></span>' +
+        '<span class="fill-count">' + c + '</span>' +
+        '</div>';
+    }
+    html += '</div>';
+
+    box.innerHTML = html;
   }
 
   // ---- Avaliações da simulação ----
