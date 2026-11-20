@@ -84,7 +84,7 @@ export default async function handler(req, res) {
 
     const funnel = [
       { key: 'open', label: 'Abriram a página', count: accesses },
-      { key: 'reveal', label: 'Chegaram na revelação', count: submissions },
+      { key: 'reveal', label: 'Chegaram na revelação (preencheram formulário)', count: submissions },
       { key: 'official', label: 'Clicaram no link oficial', count: stageCount.official || 0 },
       { key: 'feedback', label: 'Avaliaram a simulação', count: fbCount },
     ];

@@ -19,7 +19,7 @@
   const official = el('officialLink');
   if (official) official.addEventListener('click', () => track('official'));
 
-  // Feedback da revelação: estrelas 1-5 + comentário opcional.
+  // Feedback da revelação: estrelas 1-5 (radiogroup acessível) + comentário.
   (function feedback() {
     const form = el('feedbackForm');
     if (!form) return;
@@ -29,17 +29,40 @@
     const hint = el('feedbackHint');
     let rating = 0;
 
+    // Reflete a nota no visual e no ARIA (aria-checked + foco rotativo).
     const paint = () => {
-      stars.forEach((s) => s.classList.toggle('on', Number(s.dataset.value) <= rating));
-    };
-    stars.forEach((s) => {
-      s.addEventListener('click', () => {
-        rating = Number(s.dataset.value);
-        paint();
-        if (submit) submit.disabled = false;
-        if (hint) hint.textContent = '';
+      stars.forEach((s) => {
+        const v = Number(s.dataset.value);
+        s.classList.toggle('on', v <= rating);
+        s.setAttribute('aria-checked', v === rating ? 'true' : 'false');
+        // Roving tabindex: tabulável a selecionada; antes de escolher, a 1ª.
+        s.tabIndex = v === (rating || 1) ? 0 : -1;
       });
+    };
+
+    const select = (value, focus) => {
+      rating = Math.min(5, Math.max(1, value));
+      paint();
+      if (focus && stars[rating - 1]) stars[rating - 1].focus();
+      if (submit) submit.disabled = false;
+      if (hint) hint.textContent = '';
+    };
+
+    stars.forEach((s) => {
+      s.addEventListener('click', () => select(Number(s.dataset.value), false));
     });
+
+    // Teclado: setas navegam/escolhem, Home/End vão aos extremos.
+    if (starsBox) {
+      starsBox.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); select(rating === 0 ? 1 : rating + 1, true); }
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); select(rating === 0 ? 1 : rating - 1, true); }
+        else if (e.key === 'Home') { e.preventDefault(); select(1, true); }
+        else if (e.key === 'End') { e.preventDefault(); select(5, true); }
+      });
+    }
+
+    paint(); // estado inicial (1ª estrela tabulável)
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -122,7 +145,10 @@
       } else {
         setTimeout(() => {
           el('scan').classList.add('hidden');
-          el('reveal').classList.remove('hidden');
+          const reveal = el('reveal');
+          reveal.classList.remove('hidden');
+          // Leva o foco para a revelação (leitores de tela anunciam o "PARE").
+          reveal.focus();
         }, 750);
       }
     })();
