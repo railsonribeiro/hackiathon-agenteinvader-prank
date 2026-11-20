@@ -1,25 +1,5 @@
--- Funil de conversão + origem dos acessos. Tudo server-side e AGREGADO:
--- sem IP, sem cookie e sem referrer. São apenas contagens por etapa/canal.
-
--- ----------------------------------------------------------------------------
--- Origem (canal) do acesso
--- ----------------------------------------------------------------------------
--- Tag first-party passada na própria URL do link (ex.: ?s=whatsapp). NÃO é
--- referrer nem dado pessoal — só diz por qual canal o link chegou. Vazio/ausente
--- é tratado como "direto".
-alter table public.hits add column if not exists source text;
-
-create or replace view public.hits_by_source as
-  select
-    coalesce(nullif(source, ''), 'direto') as source,
-    count(*)::int                          as count
-  from public.hits
-  group by 1
-  order by count desc;
-
-alter view public.hits_by_source set (security_invoker = true);
-revoke all on public.hits_by_source from anon, authenticated;
-grant select on public.hits_by_source to service_role;
+-- Funil de conversão. Tudo server-side e AGREGADO: sem IP, sem cookie e sem
+-- referrer. São apenas contagens por etapa.
 
 -- ----------------------------------------------------------------------------
 -- Estágios do funil posteriores à abertura

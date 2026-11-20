@@ -9,15 +9,10 @@
       body: JSON.stringify({ stage }),
     }).catch(() => {});
 
-  // Origem do acesso: tag first-party da URL (?s=whatsapp). Só rótulo de canal.
-  const source = new URLSearchParams(location.search).get('s') || '';
-
-  // Conta o acesso (abertura da página). Não envia nenhum dado do usuário —
-  // só a origem agregada (canal do link), quando houver.
+  // Conta o acesso (abertura da página). Não envia nenhum dado do usuário.
   fetch('/api/hit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ source }),
   }).catch(() => {});
 
   // Clique no link oficial do hackathon, dentro da revelação.

@@ -36,10 +36,10 @@ Os caminhos abaixo são relativos a `apps/front-end/`.
 |------|---------|---------|
 | `/` | `index.html` + `app.js` | Página de demonstração (isca + revelação) |
 | `/dashboard` | `dashboard.html` + `dashboard.js` | Painel de métricas de acessos |
-| `/api/hit` | `api/hit.js` | Conta um acesso (abertura da página) + origem agregada (tag `?s=`) |
+| `/api/hit` | `api/hit.js` | Conta um acesso (abertura da página) |
 | `/api/submit` | `api/submit.js` | Conta um clique em "Confirmar" — no máximo 1 por IP, sem ler o formulário e sem guardar o IP |
 | `/api/event` | `api/event.js` | Conta etapas do funil posteriores (`reveal`, `official`) |
-| `/api/metrics` | `api/metrics.js` | Devolve contadores, funil e origens (exige login do Supabase) |
+| `/api/metrics` | `api/metrics.js` | Devolve contadores e funil (exige login do Supabase) |
 | `/api/config` | `api/config.js` | Credenciais públicas do Supabase para o login no cliente |
 
 - **Front-end:** HTML/CSS/JS puro, sem framework e sem build.
@@ -116,8 +116,7 @@ Depois de cadastrar os secrets, rode o workflow uma vez (push ou *Run workflow*)
 ## Painel de métricas
 
 - Acesse em **`/dashboard`**.
-- Mostra: **Acessos** e **Preencheram o formulário** (contadores), **Funil de conversão** (Abriram → Preencheram → Chegaram na revelação → Clicaram no link oficial, com conversão por etapa), **Origem dos acessos** (canal do link) e **Localização dos acessos** (país/região/cidade agregados, sem IP).
-- **Origem dos acessos (tag `?s=`):** marque o canal na URL compartilhada — ex.: `…agenteinvader.com.br/?s=whatsapp`, `?s=email`, `?s=cartaz`. É uma tag first-party (não é referrer, IP nem cookie); sem tag, o acesso entra como **direto**. Só `[a-z0-9_-]`, até 24 caracteres.
+- Mostra: **Acessos** e **Preencheram o formulário** (contadores), **Funil de conversão** (Abriram → Preencheram → Chegaram na revelação → Clicaram no link oficial, com conversão por etapa) e **Localização dos acessos** (país/região/cidade agregados, sem IP).
 - **Privacidade:** todo o funil é contagem agregada por etapa, sem IP e sem cookie.
 - **Login via Supabase (e-mail + senha):** o `/dashboard` mostra um formulário de login; a API `/api/metrics` valida o token do usuário no servidor e só então devolve os dados. Qualquer usuário cadastrado no seu projeto Supabase tem acesso.
 - **Como gerenciar quem entra:** em **Supabase → Authentication → Users**, clique em **Add user** para criar cada admin (e-mail + senha). Para revogar o acesso de alguém, basta remover/desativar o usuário ali. O Supabase registra os logins (rastreabilidade por pessoa).

@@ -33,12 +33,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [accessRes, submitRes, locRes, funnelRes, sourceRes] = await Promise.all([
+    const [accessRes, submitRes, locRes, funnelRes] = await Promise.all([
       supabase.from('hits').select('*', { count: 'exact', head: true }),
       supabase.from('form_submissions').select('*', { count: 'exact', head: true }),
       supabase.from('hits_by_location').select('*').limit(50),
       supabase.from('funnel_counts').select('*'),
-      supabase.from('hits_by_source').select('*').limit(50),
     ]);
 
     const locations = (locRes.data || []).map((r) => ({
@@ -62,18 +61,12 @@ export default async function handler(req, res) {
       { key: 'official', label: 'Clicaram no link oficial', count: stageCount.official || 0 },
     ];
 
-    const sources = (sourceRes.data || []).map((r) => ({
-      source: r.source || 'direto',
-      count: Number(r.count || 0),
-    }));
-
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json({
       accesses,
       submissions,
       locations,
       funnel,
-      sources,
     });
   } catch (err) {
     res.status(500).json({ error: 'metrics_unavailable' });

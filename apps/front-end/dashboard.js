@@ -88,7 +88,6 @@
         el('accesses').textContent = data.accesses || 0;
         el('submissions').textContent = data.submissions || 0;
         renderFunnel(data.funnel || []);
-        renderSources(data.sources || []);
         renderLocations(data.locations || []);
       })
       .catch((err) => {
@@ -123,29 +122,6 @@
           '<span class="fn-count">' + count + '</span></div>' +
           '<span class="fn-bar"><span class="fn-fill" style="width:' + pct + '%"></span></span>' +
           stepTag +
-          '</div>'
-        );
-      })
-      .join('');
-  }
-
-  // ---- Origem dos acessos ----
-  function renderSources(sources) {
-    const box = el('sources');
-    if (!box) return;
-    if (!sources.length) {
-      box.innerHTML = '<p class="muted">Nenhum acesso ainda.</p>';
-      return;
-    }
-    const max = Math.max(1, ...sources.map((s) => s.count));
-    box.innerHTML = sources
-      .map((s) => {
-        const pct = Math.round((s.count / max) * 100);
-        return (
-          '<div class="loc-row">' +
-          '<span class="loc-place">' + esc(s.source) + '</span>' +
-          '<span class="loc-bar"><span class="loc-fill" style="width:' + pct + '%"></span></span>' +
-          '<span class="loc-count">' + s.count + '</span>' +
           '</div>'
         );
       })
