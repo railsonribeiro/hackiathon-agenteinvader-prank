@@ -222,3 +222,23 @@ body {
 .feedback-hint { color: var(--muted); font-size: 11.5px; text-align: center; margin: 8px 0 0; }
 .feedback-thanks { color: #37d07a; font-size: 14px; text-align: center; margin: 4px 0 0; line-height: 1.6; }
 strong { color: #fff; }
+
+/* Acessibilidade */
+/* Rótulo só para leitores de tela (visualmente oculto). */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+/* Anel de foco visível para navegação por teclado. */
+:focus-visible { outline: 2px solid var(--red-soft); outline-offset: 2px; border-radius: 4px; }
+/* Restaura o anel nos campos que zeram o outline só no foco por teclado. */
+#accessForm input:focus-visible,
+#feedbackComment:focus-visible { outline: 2px solid var(--red-soft); outline-offset: 2px; }
+/* Respeita quem prefere menos movimento: corta animações e transições. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

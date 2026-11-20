@@ -62,9 +62,9 @@
     </section>
 
     <!-- ETAPA 3: revelação / aviso de simulação -->
-    <section id="reveal" class="card reveal hidden">
+    <section id="reveal" class="card reveal hidden" tabindex="-1" aria-labelledby="revealTitle">
       <div class="warn" aria-hidden="true">&#9888;</div>
-      <h1 class="title danger">PARE.</h1>
+      <h1 class="title danger" id="revealTitle">PARE.</h1>
       <p class="lead">Isto foi uma <strong>simulação</strong>.</p>
       <p class="body">
         Você acabou de preencher e "enviar" dados em uma página hospedada num
@@ -99,19 +99,20 @@
       <section id="feedback" class="feedback">
         <h2 class="feedback-title">O que você achou desta simulação?</h2>
         <form id="feedbackForm">
-          <div class="stars" id="stars" role="radiogroup" aria-label="Nota de 1 a 5">
-            <button type="button" class="star" data-value="1" aria-label="1 estrela">&#9733;</button>
-            <button type="button" class="star" data-value="2" aria-label="2 estrelas">&#9733;</button>
-            <button type="button" class="star" data-value="3" aria-label="3 estrelas">&#9733;</button>
-            <button type="button" class="star" data-value="4" aria-label="4 estrelas">&#9733;</button>
-            <button type="button" class="star" data-value="5" aria-label="5 estrelas">&#9733;</button>
+          <div class="stars" id="stars" role="radiogroup" aria-label="Nota de 1 a 5 estrelas">
+            <button type="button" class="star" data-value="1" role="radio" aria-checked="false" tabindex="0" aria-label="1 estrela">&#9733;</button>
+            <button type="button" class="star" data-value="2" role="radio" aria-checked="false" tabindex="-1" aria-label="2 estrelas">&#9733;</button>
+            <button type="button" class="star" data-value="3" role="radio" aria-checked="false" tabindex="-1" aria-label="3 estrelas">&#9733;</button>
+            <button type="button" class="star" data-value="4" role="radio" aria-checked="false" tabindex="-1" aria-label="4 estrelas">&#9733;</button>
+            <button type="button" class="star" data-value="5" role="radio" aria-checked="false" tabindex="-1" aria-label="5 estrelas">&#9733;</button>
           </div>
+          <label for="feedbackComment" class="sr-only">Comentário (opcional)</label>
           <textarea id="feedbackComment" rows="3" maxlength="500"
             placeholder="Quer deixar um comentário? (opcional)"></textarea>
           <button type="submit" id="feedbackSubmit" disabled>Enviar avaliação</button>
-          <p class="feedback-hint" id="feedbackHint">Escolha uma nota para enviar.</p>
+          <p class="feedback-hint" id="feedbackHint" aria-live="polite">Escolha uma nota para enviar.</p>
         </form>
-        <p class="feedback-thanks hidden" id="feedbackThanks">
+        <p class="feedback-thanks hidden" id="feedbackThanks" role="status">
           &#9989; Obrigado pela avaliação! Seu feedback ajuda a melhorar a conscientização.
         </p>
       </section>
