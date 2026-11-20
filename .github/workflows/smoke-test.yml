@@ -24,7 +24,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # supabase-js 2.119+ exige Node 22+ (WebSocket nativo para o realtime-js).
+          node-version: 22
           cache: npm
 
       - name: Setup Supabase CLI

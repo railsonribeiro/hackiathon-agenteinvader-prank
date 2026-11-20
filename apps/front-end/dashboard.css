@@ -104,6 +104,9 @@
 .fb-comment:last-child { border-bottom: none; }
 .fb-comment-stars { color: #ffc23d; font-size: 12px; white-space: nowrap; letter-spacing: 1px; }
 .fb-comment-text { color: #d2d6dc; font-size: 13px; line-height: 1.5; word-break: break-word; }
+.fb-comment-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.fb-comment-place { color: var(--muted); font-size: 11px; line-height: 1.4; }
+.fb-comment-place.is-empty { font-style: italic; opacity: 0.7; }
 
 /* Funil de conversão */
 .funnel { margin-top: 4px; }
