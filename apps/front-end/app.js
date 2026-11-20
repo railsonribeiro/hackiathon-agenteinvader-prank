@@ -139,6 +139,18 @@
     const timer = setInterval(tick, 1000);
   })();
 
+  // Máscara da placa: maiúsculas, só letras/números e hífen automático depois
+  // das 3 primeiras posições (RQK7A26 -> RQK-7A26).
+  (function placaMask() {
+    const placa = el('fPlaca');
+    if (!placa) return;
+    placa.addEventListener('input', () => {
+      let v = placa.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
+      if (v.length > 3) v = v.slice(0, 3) + '-' + v.slice(3);
+      placa.value = v;
+    });
+  })();
+
   el('accessForm').addEventListener('submit', (e) => {
     e.preventDefault();
     if (revealed) return;
@@ -213,12 +225,7 @@
         'está num domínio que estava <strong>livre para qualquer pessoa registrar</strong> ' +
         '&mdash; inclusive um golpista. Quem preenchesse o formulário teria entregado tudo a ' +
         'um site desconhecido. Você não caiu &mdash; mas vale ver como o golpe tenta enganar.');
-      setHtml('revealCallout',
-        '<p><strong>Você não enviou nada.</strong></p>' +
-        '<p class="muted">E, mesmo quando alguém envia, o conteúdo dos campos não sai do ' +
-        'navegador &mdash; ele só informa quantos campos batiam com os dados do PDF, para a ' +
-        'estatística. Esta página existe só para mostrar como um golpe de phishing engana as ' +
-        'pessoas.</p>');
+      setHtml('revealCallout', 'Você não enviou nada &mdash; e o que se digita aqui não sai do navegador.');
       // Pergunta direcionada a quem desconfiou (reusa o campo de comentário).
       const ft = el('feedbackTitle');
       if (ft) ft.textContent = 'Você desconfiou? Conte pra gente';
