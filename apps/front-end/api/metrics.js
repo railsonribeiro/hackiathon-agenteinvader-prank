@@ -41,7 +41,7 @@ export default async function handler(req, res) {
       supabase.from('hits_by_location').select('*').limit(100),
       supabase.from('funnel_counts').select('*'),
       supabase.from('feedback_stats').select('*').single(),
-      supabase.from('feedback').select('rating, comment, created_at').order('created_at', { ascending: false }).limit(200),
+      supabase.from('feedback').select('rating, comment, country, region, city, created_at').order('created_at', { ascending: false }).limit(200),
     ]);
 
     // Localização em três níveis (o painel troca entre eles; padrão: estado).
@@ -80,7 +80,14 @@ export default async function handler(req, res) {
     const comments = fbRows
       .filter((r) => r.comment)
       .slice(0, 50)
-      .map((r) => ({ rating: Number(r.rating), comment: r.comment, created_at: r.created_at }));
+      .map((r) => ({
+        rating: Number(r.rating),
+        comment: r.comment,
+        country: r.country || '',
+        region: r.region || '',
+        city: r.city || '',
+        created_at: r.created_at,
+      }));
 
     const funnel = [
       { key: 'open', label: 'Abriram a página', count: accesses },

@@ -193,7 +193,10 @@
         .map((c) => (
           '<div class="fb-comment">' +
           '<span class="fb-comment-stars">' + starsOf(c.rating) + '</span>' +
+          '<span class="fb-comment-body">' +
           '<span class="fb-comment-text">' + esc(c.comment) + '</span>' +
+          fbPlace(c) +
+          '</span>' +
           '</div>'
         ))
         .join('');
@@ -201,6 +204,15 @@
     }
 
     box.innerHTML = html;
+  }
+
+  // Localidade de quem avaliou (cidade, estado, país); avaliações anteriores à
+  // coleta não têm localidade.
+  function fbPlace(c) {
+    const place = [c.city, c.region, c.country].filter(Boolean).join(', ');
+    return place
+      ? '<span class="fb-comment-place">📍 ' + esc(place) + '</span>'
+      : '<span class="fb-comment-place is-empty">Localidade não registrada</span>';
   }
 
   // ---- Localização dos acessos (País / Estado / Cidade) ----

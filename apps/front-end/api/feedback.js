@@ -1,7 +1,8 @@
 import { supabase } from '../lib/supabase.js';
 
-// Avaliação da revelação (nota 1-5 + comentário opcional). Persiste só a nota e
-// o texto — sem IP e sem nada que identifique o usuário.
+// Avaliação da revelação (nota 1-5 + comentário opcional). Persiste a nota, o
+// texto e a localidade grosseira (país/região/cidade, dos cabeçalhos de geo do
+// Vercel) — sem IP e sem nada que identifique o usuário.
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   try {
@@ -16,9 +17,20 @@ export default async function handler(req, res) {
     let comment = typeof body.comment === 'string' ? body.comment.trim().slice(0, 500) : '';
     if (!comment) comment = null;
 
+    // Localidade de quem avaliou, como em /api/hit.
+    const country = req.headers['x-vercel-ip-country'] || null;
+    const region = req.headers['x-vercel-ip-country-region'] || null;
+    let city = req.headers['x-vercel-ip-city'] || null;
+    if (city) {
+      try { city = decodeURIComponent(city); } catch (e) { /* mantém como veio */ }
+    }
+
     await supabase.from('feedback').insert({
       rating,
       comment,
+      country,
+      region,
+      city,
       created_at: new Date().toISOString(),
     });
 
