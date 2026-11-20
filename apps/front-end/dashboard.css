@@ -109,6 +109,17 @@
 .fb-comment-place.is-empty { font-style: italic; opacity: 0.7; }
 .fb-comment-head { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
 
+/* Preencheram com os dados do PDF */
+.fill-summary { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.fill-big { font-size: 30px; font-weight: 700; color: #fff; line-height: 1; }
+.fill-of { font-size: 16px; font-weight: 500; color: var(--muted); }
+.fill-cap { color: var(--muted); font-size: 13px; }
+.fill-rows { display: flex; flex-direction: column; gap: 5px; }
+.fill-row { display: grid; grid-template-columns: 140px 1fr 32px; align-items: center; gap: 10px; }
+.fill-lbl { color: #d2d6dc; font-size: 13px; }
+.fill-hint { color: var(--muted); font-size: 11px; font-family: ui-monospace, monospace; }
+.fill-count { text-align: right; color: var(--muted); font-size: 12px; }
+
 /* Selos de caminho: caiu na isca x não caiu */
 .fb-paths { display: flex; gap: 8px; flex-wrap: wrap; margin: -4px 0 14px; }
 .fb-tag { display: inline-block; font-size: 11px; font-weight: 600; line-height: 1; padding: 4px 8px; border-radius: 999px; white-space: nowrap; }

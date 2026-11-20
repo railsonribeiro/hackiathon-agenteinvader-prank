@@ -104,6 +104,7 @@
         el('accesses').textContent = data.accesses || 0;
         el('submissions').textContent = data.submissions || 0;
         renderFunnel(data.funnel || []);
+        renderFill(data.fill || null);
         renderFeedback(data.feedback || null);
         const loc = data.locations || {};
         locData = {
@@ -151,6 +152,48 @@
         );
       })
       .join('');
+  }
+
+  // ---- Preencheram com os dados do PDF (só contagem de caracteres) ----
+  function renderFill(fill) {
+    const box = el('fill');
+    if (!box) return;
+    if (!fill || !fill.total) {
+      box.innerHTML = '<p class="muted">Nenhum envio ainda.</p>';
+      return;
+    }
+    const total = Number(fill.total) || 0;
+    const allOk = Number(fill.allOk) || 0;
+    const pct = total ? Math.round((allOk / total) * 100) : 0;
+
+    let html =
+      '<div class="fill-summary">' +
+      '<span class="fill-big">' + allOk + '<span class="fill-of">/' + total + '</span></span>' +
+      '<span class="fill-cap">preencheram os <strong>4 campos</strong> com os dados do PDF (' + pct + '%)</span>' +
+      '</div>';
+
+    // Por campo: quantos acertaram o tamanho esperado.
+    const fields = fill.fields || {};
+    const rows = [
+      { k: 'cracha', label: 'Crachá', hint: '00994' },
+      { k: 'placa', label: 'Placa', hint: 'RQK-7A26' },
+      { k: 'sala', label: 'Sala', hint: '1407' },
+      { k: 'pedido', label: 'Pedido', hint: '471' },
+    ];
+    html += '<div class="fill-rows">';
+    rows.forEach((r) => {
+      const c = Number(fields[r.k] || 0);
+      const w = total ? Math.round((c / total) * 100) : 0;
+      html +=
+        '<div class="fill-row">' +
+        '<span class="fill-lbl">' + r.label + ' <span class="fill-hint">' + esc(r.hint) + '</span></span>' +
+        '<span class="loc-bar"><span class="loc-fill" style="width:' + w + '%"></span></span>' +
+        '<span class="fill-count">' + c + '</span>' +
+        '</div>';
+    });
+    html += '</div>';
+
+    box.innerHTML = html;
   }
 
   // ---- Avaliações da simulação ----

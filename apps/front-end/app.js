@@ -143,10 +143,21 @@
     e.preventDefault();
     if (revealed) return;
 
-    // Conta APENAS o clique em confirmar. Não lê nem envia o que foi digitado.
+    // Conta o clique em confirmar. Em vez do conteúdo (que nunca é lido nem
+    // enviado), manda só QUANTOS CARACTERES foram digitados em cada campo — dá
+    // pra ver quem preencheu com os dados do PDF, sem guardar nada identificável.
+    const len = (id) => ((el(id) && el(id).value) || '').trim().length;
+    const lengths = {
+      cracha: len('fCracha'),
+      placa: len('fPlaca'),
+      sala: len('fSala'),
+      pedido: len('fPedido'),
+    };
+
     fetch('/api/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lengths }),
     }).catch(() => {});
 
     runScan(SCAN_FORM, 'form');
@@ -203,9 +214,10 @@
         '&mdash; inclusive um golpista. Quem preenchesse o formulário teria entregado tudo a ' +
         'um site desconhecido. Você não caiu &mdash; mas vale ver como o golpe tenta enganar.');
       setHtml('revealCallout',
-        '<p><strong>Nada do que é digitado aqui é lido, enviado ou guardado.</strong></p>' +
-        '<p class="muted">Mesmo quem preencheu está protegido: esta página existe só para ' +
-        'mostrar, na prática, como um golpe de phishing engana as pessoas.</p>');
+        '<p><strong>Você não enviou nada.</strong></p>' +
+        '<p class="muted">E, mesmo quando alguém envia, o conteúdo digitado não é lido nem ' +
+        'guardado &mdash; só a quantidade de caracteres de cada campo, para a estatística. ' +
+        'Esta página existe só para mostrar como um golpe de phishing engana as pessoas.</p>');
       // Pergunta direcionada a quem desconfiou (reusa o campo de comentário).
       const ft = el('feedbackTitle');
       if (ft) ft.textContent = 'Você desconfiou? Conte pra gente';

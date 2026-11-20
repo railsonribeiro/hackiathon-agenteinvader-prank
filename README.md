@@ -6,7 +6,7 @@ Quando alguém abre a página, ela mostra por alguns segundos uma tela sombria d
 
 A página mostra um **formulário de "validação"** (crachá, placa, sala etc.) só como encenação: o participante acha que vai destravar algo e, ao confirmar, recebe o aviso de que foi uma simulação. Quem **desconfia e não preenche** também chega à revelação: um cronômetro de urgência de 6 minutos, ao esgotar, mostra a mesma lição com o aviso **"Você não caiu"** — assim quem percebeu o golpe entende do que se tratava e pode dar sua opinião.
 
-> ⚠️ **O que esta página NÃO faz:** ela **não lê, não envia e não guarda nada do que é digitado** no formulário. O que é registrado: dois contadores (quantas pessoas **abriram** a página e quantas **clicaram em confirmar**) e a **localização agregada** do acesso (país/região/cidade, dos cabeçalhos de geo do Vercel). **Nenhum IP** e nada que identifique a pessoa — é analytics agregado, fora do escopo de dado pessoal.
+> ⚠️ **O que esta página NÃO faz:** ela **não lê nem guarda o conteúdo** do que é digitado no formulário. O que é registrado: dois contadores (quantas pessoas **abriram** a página e quantas **clicaram em confirmar**), a **localização agregada** do acesso (país/região/cidade, dos cabeçalhos de geo do Vercel) e, por envio, **apenas a quantidade de caracteres digitada em cada campo** (nunca o conteúdo) — para medir quem preencheu com os dados do PDF do hackathon. **Nenhum IP** e nada que identifique a pessoa — é analytics agregado, fora do escopo de dado pessoal.
 
 ---
 
@@ -37,7 +37,7 @@ Os caminhos abaixo são relativos a `apps/front-end/`.
 | `/` | `index.html` + `app.js` | Página de demonstração (isca + revelação) |
 | `/dashboard` | `dashboard.html` + `dashboard.js` | Painel de métricas de acessos |
 | `/api/hit` | `api/hit.js` | Conta um acesso (abertura da página) |
-| `/api/submit` | `api/submit.js` | Conta um clique em "Confirmar" — no máximo 1 por IP, sem ler o formulário e sem guardar o IP |
+| `/api/submit` | `api/submit.js` | Conta um clique em "Confirmar" (máx. 1 por IP, sem guardar o IP) e registra só o nº de caracteres de cada campo — nunca o conteúdo |
 | `/api/event` | `api/event.js` | Conta estágios do funil: o cronômetro esgotou sem o formulário (`timeout`) e o clique no link oficial (`official`) |
 | `/api/feedback` | `api/feedback.js` | Salva a avaliação da revelação (nota 1-5 + comentário opcional + caminho `form`/`timeout` + localidade país/região/cidade, sem IP) |
 | `/api/metrics` | `api/metrics.js` | Devolve contadores, funil e avaliações (exige login do Supabase) |
@@ -117,7 +117,7 @@ Depois de cadastrar os secrets, rode o workflow uma vez (push ou *Run workflow*)
 ## Painel de métricas
 
 - Acesse em **`/dashboard`**.
-- Mostra: **Acessos** e **Chegaram na revelação (preencheram formulário)** (contadores), **Funil de conversão** (Abriram → Caíram no formulário → Não preencheram, mas viram a revelação ao esgotar o tempo → Clicaram no link oficial → Avaliaram a simulação, com conversão por etapa), **Avaliações da simulação** (média, distribuição das notas, quantas vieram de quem **caiu** × quem **não caiu**, e comentários com o selo do caminho) e **Localização dos acessos** — um card com alternância entre **País / Estado / Cidade** (padrão: Estado), agregado e sem IP.
+- Mostra: **Acessos** e **Chegaram na revelação (preencheram formulário)** (contadores), **Funil de conversão** (Abriram → Caíram no formulário → Não preencheram, mas viram a revelação ao esgotar o tempo → Clicaram no link oficial → Avaliaram a simulação, com conversão por etapa), **Preencheram com os dados do PDF** (quantos envios digitaram, em cada campo, a mesma quantidade de caracteres dos valores do PDF — só contagem, nunca o conteúdo), **Avaliações da simulação** (média, distribuição das notas, quantas vieram de quem **caiu** × quem **não caiu**, e comentários com o selo do caminho) e **Localização dos acessos** — um card com alternância entre **País / Estado / Cidade** (padrão: Estado), agregado e sem IP.
 - **"Chegaram na revelação"** = clique em *"Confirmar e desbloquear acesso"* (deduplicado por IP). Como o clique leva direto à revelação, é a mesma métrica — e reusa o contador que já tinha histórico.
 - **Revelação ao esgotar o tempo:** o cronômetro de urgência é de **6 minutos**. Se ele zera e a pessoa **não** preencheu o formulário, roda uma animação própria ("sessão expirada") e aparece a revelação na versão **"Você não caiu"** — mesma lição, tom diferente. Isso registra o estágio `timeout` no funil e, na avaliação, o campo de comentário vira *"O que te fez desconfiar?"*. Observação: o cronômetro só alcança quem deixa a aba aberta até o fim; quem fecha antes não vê a revelação.
 - **Avaliações:** na revelação há um formulário de feedback (nota de 1 a 5 + comentário opcional) sobre a ideia da simulação. É anônimo (sem IP) e fica persistido na tabela `feedback`, junto com o **caminho** (`form` = caiu na isca · `timeout` = não caiu) e a localidade de quem avaliou (país/região/cidade, dos cabeçalhos de geo do Vercel). O painel mostra o selo do caminho e a localidade em cada avaliação.

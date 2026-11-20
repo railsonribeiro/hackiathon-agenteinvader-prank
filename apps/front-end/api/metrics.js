@@ -33,7 +33,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [accessRes, submitRes, countryRes, regionRes, cityRes, funnelRes, fbStatsRes, fbRowsRes] = await Promise.all([
+    const [accessRes, submitRes, countryRes, regionRes, cityRes, funnelRes, fbStatsRes, fbRowsRes, fillRes] = await Promise.all([
       supabase.from('hits').select('*', { count: 'exact', head: true }),
       supabase.from('form_submissions').select('*', { count: 'exact', head: true }),
       supabase.from('hits_by_country').select('*').limit(100),
@@ -42,6 +42,7 @@ export default async function handler(req, res) {
       supabase.from('funnel_counts').select('*'),
       supabase.from('feedback_stats').select('*').single(),
       supabase.from('feedback').select('rating, comment, path, country, region, city, created_at').order('created_at', { ascending: false }).limit(200),
+      supabase.from('submission_fill').select('*').single(),
     ]);
 
     // Localização em três níveis (o painel troca entre eles; padrão: estado).
@@ -112,6 +113,20 @@ export default async function handler(req, res) {
       { key: 'feedback', label: 'Avaliaram a simulação', count: fbCount, base: reachedReveal, baseLabel: 'dos que viram a revelação' },
     ];
 
+    // Preenchimento com os dados do PDF (só contagens de caracteres por campo).
+    const f = fillRes.data || {};
+    const fill = {
+      total: Number(f.total || 0),
+      withLengths: Number(f.with_lengths || 0),
+      allOk: Number(f.all_ok || 0),
+      fields: {
+        cracha: Number(f.cracha_ok || 0),
+        placa: Number(f.placa_ok || 0),
+        sala: Number(f.sala_ok || 0),
+        pedido: Number(f.pedido_ok || 0),
+      },
+    };
+
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json({
       accesses,
@@ -119,6 +134,7 @@ export default async function handler(req, res) {
       locations,
       funnel,
       feedback: { count: fbCount, avg: fbAvg, distribution, byPath, comments },
+      fill,
     });
   } catch (err) {
     res.status(500).json({ error: 'metrics_unavailable' });
