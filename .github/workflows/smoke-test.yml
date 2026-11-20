@@ -1,0 +1,57 @@
+name: Smoke test (service_role)
+
+# Sobe um Supabase LOCAL (sem tocar produção), aplica as migrations e verifica
+# que a role service_role consegue GRAVAR e LER cada tabela/view — o mesmo
+# caminho das funções /api. Pega regressões de GRANT/RLS antes do merge
+# (ex.: o bug do #14, em que o INSERT falhava em silêncio por falta de GRANT).
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'apps/front-end/api/**'
+      - 'apps/front-end/lib/**'
+      - 'scripts/smoke.mjs'
+      - '.github/workflows/smoke-test.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+        env:
+          # Autentica a busca da release da CLI para não esbarrar no rate limit.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Subir Supabase local (aplica as migrations)
+        run: supabase start
+
+      - name: Exportar URL e service_role key locais
+        run: |
+          eval "$(supabase status -o env)"
+          {
+            echo "SUPABASE_URL=$API_URL"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+          } >> "$GITHUB_ENV"
+
+      - name: Rodar smoke test
+        run: node scripts/smoke.mjs
+
+      - name: Parar Supabase local
+        if: always()
+        run: supabase stop
