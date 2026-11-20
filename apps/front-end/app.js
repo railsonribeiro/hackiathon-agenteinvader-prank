@@ -1,11 +1,23 @@
 (() => {
   const el = (id) => document.getElementById(id);
 
+  // Dispara um estágio do funil (reveal/official). Agregado, sem dado do usuário.
+  const track = (stage) =>
+    fetch('/api/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stage }),
+    }).catch(() => {});
+
   // Conta o acesso (abertura da página). Não envia nenhum dado do usuário.
   fetch('/api/hit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   }).catch(() => {});
+
+  // Clique no link oficial do hackathon, dentro da revelação.
+  const official = el('officialLink');
+  if (official) official.addEventListener('click', () => track('official'));
 
   // "Último dia" sempre com a data de hoje — clássico golpe de urgência.
   (function deadline() {
@@ -70,6 +82,7 @@
         setTimeout(() => {
           el('scan').classList.add('hidden');
           el('reveal').classList.remove('hidden');
+          track('reveal');
         }, 750);
       }
     })();

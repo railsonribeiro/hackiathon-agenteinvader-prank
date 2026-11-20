@@ -87,6 +87,7 @@
       .then((data) => {
         el('accesses').textContent = data.accesses || 0;
         el('submissions').textContent = data.submissions || 0;
+        renderFunnel(data.funnel || []);
         renderLocations(data.locations || []);
       })
       .catch((err) => {
@@ -95,6 +96,36 @@
             ? 'Sua conta não tem acesso ao painel.'
             : 'Não foi possível carregar as métricas.';
       });
+  }
+
+  // ---- Funil de conversão ----
+  function renderFunnel(stages) {
+    const box = el('funnel');
+    if (!box) return;
+    if (!stages.length) {
+      box.innerHTML = '<p class="muted">Sem dados ainda.</p>';
+      return;
+    }
+    const top = Math.max(1, Number(stages[0].count) || 0);
+    box.innerHTML = stages
+      .map((s, i) => {
+        const count = Number(s.count) || 0;
+        // Largura relativa ao topo do funil (aberturas).
+        const pct = Math.min(100, Math.round((count / top) * 100));
+        // Conversão em relação à etapa anterior.
+        const prev = i > 0 ? Number(stages[i - 1].count) || 0 : null;
+        const step = prev && prev > 0 ? Math.min(100, Math.round((count / prev) * 100)) : null;
+        const stepTag = step != null ? '<span class="fn-step">' + step + '% da etapa anterior</span>' : '';
+        return (
+          '<div class="fn-row">' +
+          '<div class="fn-top"><span class="fn-label">' + esc(s.label) + '</span>' +
+          '<span class="fn-count">' + count + '</span></div>' +
+          '<span class="fn-bar"><span class="fn-fill" style="width:' + pct + '%"></span></span>' +
+          stepTag +
+          '</div>'
+        );
+      })
+      .join('');
   }
 
   // ---- Localização dos acessos ----
