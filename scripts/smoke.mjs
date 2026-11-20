@@ -40,7 +40,8 @@ console.log('Escrita (service_role precisa de GRANT em cada tabela):');
 await ins('hits', { created_at: now(), country: 'BR', region: 'SP', city: 'CI' });
 await ins('form_submissions', { created_at: now(), ip_hash: tag });
 await ins('funnel_events', { created_at: now(), stage: 'official' });
-await ins('feedback', { created_at: now(), rating: 5, comment: tag, country: 'BR', region: 'SP', city: 'CI' });
+await ins('funnel_events', { created_at: now(), stage: 'timeout' });
+await ins('feedback', { created_at: now(), rating: 5, comment: tag, path: 'timeout', country: 'BR', region: 'SP', city: 'CI' });
 
 console.log('Leitura (tabelas + views usadas pelo /api/metrics):');
 for (const rel of [

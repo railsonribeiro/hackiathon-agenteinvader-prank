@@ -17,6 +17,10 @@ export default async function handler(req, res) {
     let comment = typeof body.comment === 'string' ? body.comment.trim().slice(0, 500) : '';
     if (!comment) comment = null;
 
+    // Caminho que levou à revelação: 'form' (caiu na isca) ou 'timeout' (o
+    // cronômetro esgotou e a revelação apareceu). Qualquer outro valor vira nulo.
+    const path = body.path === 'form' || body.path === 'timeout' ? body.path : null;
+
     // Localidade de quem avaliou, como em /api/hit.
     const country = req.headers['x-vercel-ip-country'] || null;
     const region = req.headers['x-vercel-ip-country-region'] || null;
@@ -28,6 +32,7 @@ export default async function handler(req, res) {
     await supabase.from('feedback').insert({
       rating,
       comment,
+      path,
       country,
       region,
       city,

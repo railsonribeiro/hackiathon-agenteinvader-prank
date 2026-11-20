@@ -135,10 +135,12 @@
         const count = Number(s.count) || 0;
         // Largura relativa ao topo do funil (aberturas).
         const pct = Math.min(100, Math.round((count / top) * 100));
-        // Conversão em relação à etapa anterior.
-        const prev = i > 0 ? Number(stages[i - 1].count) || 0 : null;
-        const step = prev && prev > 0 ? Math.min(100, Math.round((count / prev) * 100)) : null;
-        const stepTag = step != null ? '<span class="fn-step">' + step + '% da etapa anterior</span>' : '';
+        // Conversão: o servidor manda 'base' (sobre qual número a etapa converte,
+        // por causa dos dois caminhos até a revelação); sem ela, usa a etapa acima.
+        const base = s.base != null ? Number(s.base) : (i > 0 ? Number(stages[i - 1].count) || 0 : null);
+        const step = base && base > 0 ? Math.min(100, Math.round((count / base) * 100)) : null;
+        const baseLabel = s.baseLabel ? ' ' + s.baseLabel : ' da etapa anterior';
+        const stepTag = step != null ? '<span class="fn-step">' + step + '%' + esc(baseLabel) + '</span>' : '';
         return (
           '<div class="fn-row">' +
           '<div class="fn-top"><span class="fn-label">' + esc(s.label) + '</span>' +
@@ -169,6 +171,18 @@
       '<span class="fb-total">' + fb.count + (fb.count === 1 ? ' avaliação' : ' avaliações') + '</span>' +
       '</div>';
 
+    // Quem avaliou caiu na isca ou não? (quando houver o dado).
+    const bp = fb.byPath || {};
+    const fell = Number(bp.form || 0);
+    const safe = Number(bp.timeout || 0);
+    if (fell || safe) {
+      html +=
+        '<div class="fb-paths">' +
+        '<span class="fb-tag fb-tag-fell">Caiu na isca: ' + fell + '</span>' +
+        '<span class="fb-tag fb-tag-safe">Não caiu: ' + safe + '</span>' +
+        '</div>';
+    }
+
     // Distribuição 5★ -> 1★.
     const dist = fb.distribution || {};
     const maxBar = Math.max(1, ...[1, 2, 3, 4, 5].map((n) => Number(dist[n] || 0)));
@@ -194,7 +208,7 @@
           '<div class="fb-comment">' +
           '<span class="fb-comment-stars">' + starsOf(c.rating) + '</span>' +
           '<span class="fb-comment-body">' +
-          '<span class="fb-comment-text">' + esc(c.comment) + '</span>' +
+          '<span class="fb-comment-head">' + fbPathTag(c) + '<span class="fb-comment-text">' + esc(c.comment) + '</span></span>' +
           fbPlace(c) +
           '</span>' +
           '</div>'
@@ -204,6 +218,14 @@
     }
 
     box.innerHTML = html;
+  }
+
+  // Selo do caminho: caiu na isca (form) ou não caiu (timeout); avaliações
+  // anteriores a esta coleta não têm caminho (sem selo).
+  function fbPathTag(c) {
+    if (c.path === 'form') return '<span class="fb-tag fb-tag-fell">Caiu na isca</span>';
+    if (c.path === 'timeout') return '<span class="fb-tag fb-tag-safe">Não caiu</span>';
+    return '';
   }
 
   // Localidade de quem avaliou (cidade, estado, país); avaliações anteriores à

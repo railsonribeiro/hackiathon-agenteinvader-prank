@@ -41,7 +41,7 @@ export default async function handler(req, res) {
       supabase.from('hits_by_location').select('*').limit(100),
       supabase.from('funnel_counts').select('*'),
       supabase.from('feedback_stats').select('*').single(),
-      supabase.from('feedback').select('rating, comment, country, region, city, created_at').order('created_at', { ascending: false }).limit(200),
+      supabase.from('feedback').select('rating, comment, path, country, region, city, created_at').order('created_at', { ascending: false }).limit(200),
     ]);
 
     // Localização em três níveis (o painel troca entre eles; padrão: estado).
@@ -77,23 +77,39 @@ export default async function handler(req, res) {
     const fbAvg = Number((fbStatsRes.data && fbStatsRes.data.avg_rating) || 0);
     const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     fbRows.forEach((r) => { const n = Number(r.rating); if (distribution[n] != null) distribution[n] += 1; });
+    // Quantas avaliações vieram de quem caiu (form) e de quem não caiu (timeout).
+    // Contado sobre as avaliações carregadas (as mais recentes), como a distribuição.
+    const byPath = { form: 0, timeout: 0, unknown: 0 };
+    fbRows.forEach((r) => {
+      if (r.path === 'form') byPath.form += 1;
+      else if (r.path === 'timeout') byPath.timeout += 1;
+      else byPath.unknown += 1;
+    });
     const comments = fbRows
       .filter((r) => r.comment)
       .slice(0, 50)
       .map((r) => ({
         rating: Number(r.rating),
         comment: r.comment,
+        path: r.path || '',
         country: r.country || '',
         region: r.region || '',
         city: r.city || '',
         created_at: r.created_at,
       }));
 
+    // Dois caminhos levam à revelação: cair no formulário (submissions) ou
+    // deixar o cronômetro esgotar (timeout). 'base' diz sobre qual número a %
+    // de cada etapa é calculada no painel — senão "oficial" sairia relativo só
+    // ao ramo acima dele, o que confunde.
+    const timeouts = stageCount.timeout || 0;
+    const reachedReveal = submissions + timeouts;
     const funnel = [
       { key: 'open', label: 'Abriram a página', count: accesses },
-      { key: 'reveal', label: 'Chegaram na revelação (preencheram formulário)', count: submissions },
-      { key: 'official', label: 'Clicaram no link oficial', count: stageCount.official || 0 },
-      { key: 'feedback', label: 'Avaliaram a simulação', count: fbCount },
+      { key: 'reveal', label: 'Caíram no formulário e viram a revelação', count: submissions, base: accesses, baseLabel: 'dos que abriram' },
+      { key: 'timeout', label: 'Não preencheram — viram a revelação ao esgotar o tempo', count: timeouts, base: accesses, baseLabel: 'dos que abriram' },
+      { key: 'official', label: 'Clicaram no link oficial', count: stageCount.official || 0, base: reachedReveal, baseLabel: 'dos que viram a revelação' },
+      { key: 'feedback', label: 'Avaliaram a simulação', count: fbCount, base: reachedReveal, baseLabel: 'dos que viram a revelação' },
     ];
 
     res.setHeader('Cache-Control', 'no-store');
@@ -102,7 +118,7 @@ export default async function handler(req, res) {
       submissions,
       locations,
       funnel,
-      feedback: { count: fbCount, avg: fbAvg, distribution, comments },
+      feedback: { count: fbCount, avg: fbAvg, distribution, byPath, comments },
     });
   } catch (err) {
     res.status(500).json({ error: 'metrics_unavailable' });
