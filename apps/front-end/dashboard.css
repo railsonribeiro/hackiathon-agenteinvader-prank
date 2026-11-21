@@ -133,13 +133,37 @@
 
 /* Funil de conversão */
 .funnel { margin-top: 4px; }
-.fn-row { margin: 12px 0; }
 .fn-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .fn-label { color: #d2d6dc; font-size: 13px; }
 .fn-count { color: #fff; font-size: 15px; font-weight: 600; }
 .fn-bar { display: block; margin-top: 5px; background: rgba(255, 255, 255, 0.07); border-radius: 999px; height: 14px; overflow: hidden; }
 .fn-fill { display: block; height: 100%; background: linear-gradient(90deg, var(--red), var(--red-soft)); }
 .fn-step { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+/* Funil em escada: cada degrau recuado, ligado ao de cima por uma linha. */
+.fn-stair { position: relative; }
+.fn-lvl1, .fn-lvl2 { margin: 16px 0 0 14px; padding-left: 14px; border-left: 2px solid rgba(226, 32, 59, 0.35); }
+.fn-lvl1::before, .fn-lvl2::before {
+  content: ''; position: absolute; left: -2px; top: 9px; width: 10px;
+  border-top: 2px solid rgba(226, 32, 59, 0.35);
+}
+.fn-paths {
+  margin: 12px 0 0; padding: 10px 12px; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.fn-paths-title { color: var(--muted); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+.fn-path { display: grid; grid-template-columns: 1fr auto; column-gap: 10px; margin: 8px 0; }
+.fn-path-lbl { color: #d2d6dc; font-size: 12px; line-height: 1.35; }
+.fn-path-num { color: #fff; font-size: 13px; font-weight: 600; text-align: right; white-space: nowrap; }
+.fn-path-pct { color: var(--muted); font-size: 11px; font-weight: 400; margin-left: 6px; }
+.fn-path-bar { grid-column: 1 / -1; display: block; margin-top: 4px; height: 6px; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, 0.07); }
+.fn-path-main .fn-path-lbl { font-size: 12.5px; }
+.fn-path-main .fn-path-lbl strong { color: #fff; font-weight: 600; }
+.fn-path-hint { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+.fn-path-subs { margin: 2px 0 10px 4px; padding-left: 12px; border-left: 2px solid rgba(255, 255, 255, 0.08); }
+.fn-path-sub { margin: 6px 0; }
+.fn-path-sub .fn-path-lbl { color: var(--muted); font-size: 11.5px; }
+.fn-path-sub .fn-path-num { font-size: 12px; font-weight: 500; }
+.fn-path-sub .fn-path-bar { height: 4px; }
 
 .note { color: var(--muted); font-size: 13px; text-align: center; margin-top: 20px; }
 @media (max-width: 520px) {

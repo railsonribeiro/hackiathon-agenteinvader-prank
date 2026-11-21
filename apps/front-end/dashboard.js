@@ -165,6 +165,24 @@
   }
 
   // ---- Funil de conversão ----
+  // Escada de 2 degraus, só visual (os números vêm iguais da /api/metrics):
+  //   Abriram a página
+  //     └ Viram a revelação (soma dos caminhos) + por qual caminho
+  //         └ Avaliaram a simulação
+  // Cada barra e cada % são relativas ao degrau de cima.
+  const FN_PATHS = ['clicked_filled', 'clicked_empty', 'clicked_unknown', 'timeout'];
+  // Quem clicou em Confirmar caiu no phishing, tenha preenchido ou não (e
+  // mesmo sem medição do preenchimento). Agrupamento só semântico, na tela.
+  const FN_FELL = ['clicked_filled', 'clicked_empty', 'clicked_unknown'];
+  // Rótulos curtos dentro do quadro "Como chegaram à revelação" (o contexto
+  // já diz que é o caminho até a revelação). Sem rótulo aqui, usa o da API.
+  const FN_PATH_LABELS = {
+    clicked_filled: 'Preencheram ao menos um campo',
+    clicked_empty: 'Deixaram todos os campos em branco',
+    clicked_unknown: 'Preenchimento não medido (cliques antes de 21/11, 12h)',
+    timeout: 'Esperaram o cronômetro zerar',
+  };
+
   function renderFunnel(stages) {
     const box = el('funnel');
     if (!box) return;
@@ -172,28 +190,59 @@
       box.innerHTML = '<p class="muted">Sem dados ainda.</p>';
       return;
     }
-    const top = Math.max(1, Number(stages[0].count) || 0);
-    box.innerHTML = stages
-      .map((s, i) => {
-        const count = Number(s.count) || 0;
-        // Largura relativa ao topo do funil (aberturas).
-        const pct = Math.min(100, Math.round((count / top) * 100));
-        // Conversão: o servidor manda 'base' (sobre qual número a etapa converte,
-        // por causa dos dois caminhos até a revelação); sem ela, usa a etapa acima.
-        const base = s.base != null ? Number(s.base) : (i > 0 ? Number(stages[i - 1].count) || 0 : null);
-        const step = base && base > 0 ? Math.min(100, Math.round((count / base) * 100)) : null;
-        const baseLabel = s.baseLabel ? ' ' + s.baseLabel : ' da etapa anterior';
-        const stepTag = step != null ? '<span class="fn-step">' + step + '%' + esc(baseLabel) + '</span>' : '';
-        return (
-          '<div class="fn-row">' +
-          '<div class="fn-top"><span class="fn-label">' + esc(s.label) + '</span>' +
-          '<span class="fn-count">' + count + '</span></div>' +
-          '<span class="fn-bar"><span class="fn-fill" style="width:' + pct + '%"></span></span>' +
-          stepTag +
+    const by = {};
+    stages.forEach((s) => { by[s.key] = s; });
+    const n = (k) => (by[k] ? Number(by[k].count) || 0 : 0);
+    const pctOf = (a, b) => (b > 0 ? Math.min(100, Math.round((a / b) * 100)) : 0);
+
+    const opened = n('open');
+    const paths = FN_PATHS.filter((k) => by[k]);
+    const revealed = paths.reduce((t, k) => t + n(k), 0);
+    const rated = n('feedback');
+
+    // Um degrau: título, número, barra e % sobre o degrau de cima.
+    const stepHead = (label, count, base, baseLabel) =>
+      '<div class="fn-top"><span class="fn-label">' + esc(label) + '</span>' +
+      '<span class="fn-count">' + count + '</span></div>' +
+      '<span class="fn-bar"><span class="fn-fill" style="width:' + (base == null ? 100 : pctOf(count, base)) + '%"></span></span>' +
+      (base == null ? '' : '<span class="fn-step">' + pctOf(count, base) + '% ' + esc(baseLabel) + '</span>');
+
+    // Caminhos até a revelação: linhas compactas. % do 1º nível sobre quem viu
+    // a revelação; % das sub-linhas de "Caíram" sobre quem caiu.
+    const pathRow = (label, c, base, cls) =>
+      '<div class="fn-path' + (cls ? ' ' + cls : '') + '">' +
+      '<span class="fn-path-lbl">' + label + '</span>' +
+      '<span class="fn-path-num">' + c + '<span class="fn-path-pct">' + pctOf(c, base) + '%</span></span>' +
+      '<span class="fn-path-bar"><span class="fn-fill" style="width:' + pctOf(c, base) + '%"></span></span>' +
+      '</div>';
+    const fellKeys = FN_FELL.filter((k) => by[k]);
+    const fell = fellKeys.reduce((t, k) => t + n(k), 0);
+    let pathRows = '';
+    if (fellKeys.length) {
+      pathRows +=
+        '<div class="fn-path-group">' +
+        pathRow('<strong>Caíram no phishing</strong><span class="fn-path-hint">Clicaram em <em>Confirmar</em> antes de o cronômetro zerar</span>', fell, revealed, 'fn-path-main') +
+        '<div class="fn-path-subs">' +
+        fellKeys.map((k) => pathRow(esc(FN_PATH_LABELS[k] || by[k].label), n(k), fell, 'fn-path-sub')).join('') +
+        '</div></div>';
+    }
+    paths
+      .filter((k) => FN_FELL.indexOf(k) === -1)
+      .forEach((k) => { pathRows += pathRow(esc(FN_PATH_LABELS[k] || by[k].label), n(k), revealed, 'fn-path-main'); });
+
+    box.innerHTML =
+      '<div class="fn-stair fn-lvl0">' +
+      stepHead('Acessos à página', opened, null) +
+      '<div class="fn-stair fn-lvl1">' +
+      stepHead('Chegaram à tela de revelação', revealed, opened, 'dos acessos') +
+      (paths.length ? '<div class="fn-paths"><div class="fn-paths-title">Por qual caminho</div>' + pathRows + '</div>' : '') +
+      (by.feedback
+        ? '<div class="fn-stair fn-lvl2">' +
+          stepHead('Avaliaram a simulação', rated, revealed, 'de quem chegou à revelação') +
           '</div>'
-        );
-      })
-      .join('');
+        : '') +
+      '</div>' +
+      '</div>';
   }
 
   // ---- Preencheram com os dados do PDF (só nº de campos corretos, 0..4) ----
@@ -272,7 +321,7 @@
     if (fell || safe) {
       html +=
         '<div class="fb-paths">' +
-        '<span class="fb-tag fb-tag-fell">Caiu na isca: ' + fell + '</span>' +
+        '<span class="fb-tag fb-tag-fell">Caiu no phishing: ' + fell + '</span>' +
         '<span class="fb-tag fb-tag-safe">Não caiu: ' + safe + '</span>' +
         '</div>';
     }
@@ -317,7 +366,7 @@
   // Selo do caminho: caiu na isca (form) ou não caiu (timeout); avaliações
   // anteriores a esta coleta não têm caminho (sem selo).
   function fbPathTag(c) {
-    if (c.path === 'form') return '<span class="fb-tag fb-tag-fell">Caiu na isca</span>';
+    if (c.path === 'form') return '<span class="fb-tag fb-tag-fell">Caiu no phishing</span>';
     if (c.path === 'timeout') return '<span class="fb-tag fb-tag-safe">Não caiu</span>';
     return '';
   }
