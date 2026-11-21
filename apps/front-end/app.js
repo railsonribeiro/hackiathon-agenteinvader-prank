@@ -121,7 +121,7 @@
   (function countdown() {
     const cd = el('countdown');
     if (!cd) return;
-    let secs = 6 * 60;
+    let secs = 5 * 60;
     const tick = () => {
       secs = Math.max(0, secs - 1);
       const m = String(Math.floor(secs / 60)).padStart(2, '0');
@@ -139,14 +139,37 @@
     const timer = setInterval(tick, 1000);
   })();
 
+  // Máscara da placa: maiúsculas, só letras/números e hífen automático depois
+  // das 3 primeiras posições (RQK7A26 -> RQK-7A26).
+  (function placaMask() {
+    const placa = el('fPlaca');
+    if (!placa) return;
+    placa.addEventListener('input', () => {
+      let v = placa.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
+      if (v.length > 3) v = v.slice(0, 3) + '-' + v.slice(3);
+      placa.value = v;
+    });
+  })();
+
   el('accessForm').addEventListener('submit', (e) => {
     e.preventDefault();
     if (revealed) return;
 
-    // Conta APENAS o clique em confirmar. Não lê nem envia o que foi digitado.
+    // Conta o clique em confirmar. O que foi digitado NÃO sai do navegador: aqui
+    // comparamos cada campo com o valor do PDF e enviamos só QUANTOS dos 4 campos
+    // bateram (0 a 4) — pra ver quem preencheu com os dados do PDF, sem enviar
+    // nem guardar nada do conteúdo.
+    const EXPECTED = { fCracha: '00994', fPlaca: 'RQK-7A26', fSala: '1407', fPedido: '4471' };
+    const norm = (s) => (s || '').trim().toUpperCase().replace(/\s+/g, '');
+    let correct = 0;
+    Object.keys(EXPECTED).forEach((id) => {
+      if (el(id) && norm(el(id).value) === norm(EXPECTED[id])) correct += 1;
+    });
+
     fetch('/api/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ correct }),
     }).catch(() => {});
 
     runScan(SCAN_FORM, 'form');
@@ -202,10 +225,7 @@
         'está num domínio que estava <strong>livre para qualquer pessoa registrar</strong> ' +
         '&mdash; inclusive um golpista. Quem preenchesse o formulário teria entregado tudo a ' +
         'um site desconhecido. Você não caiu &mdash; mas vale ver como o golpe tenta enganar.');
-      setHtml('revealCallout',
-        '<p><strong>Nada do que é digitado aqui é lido, enviado ou guardado.</strong></p>' +
-        '<p class="muted">Mesmo quem preencheu está protegido: esta página existe só para ' +
-        'mostrar, na prática, como um golpe de phishing engana as pessoas.</p>');
+      setHtml('revealCallout', 'Você não enviou nada &mdash; e o que se digita aqui não sai do navegador.');
       // Pergunta direcionada a quem desconfiou (reusa o campo de comentário).
       const ft = el('feedbackTitle');
       if (ft) ft.textContent = 'Você desconfiou? Conte pra gente';
