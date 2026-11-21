@@ -291,7 +291,7 @@
           '<span class="fb-comment-stars">' + starsOf(c.rating) + '</span>' +
           '<span class="fb-comment-body">' +
           '<span class="fb-comment-head">' + fbPathTag(c) + '<span class="fb-comment-text">' + esc(c.comment) + '</span></span>' +
-          fbPlace(c) +
+          '<span class="fb-comment-meta">' + fbPlace(c) + fbWhen(c) + '</span>' +
           '</span>' +
           '</div>'
         ))
@@ -308,6 +308,18 @@
     if (c.path === 'form') return '<span class="fb-tag fb-tag-fell">Caiu na isca</span>';
     if (c.path === 'timeout') return '<span class="fb-tag fb-tag-safe">Não caiu</span>';
     return '';
+  }
+
+  // Data e hora da avaliação (created_at, gravado para toda avaliação) no fuso
+  // de quem abre o painel.
+  function fbWhen(c) {
+    if (!c.created_at) return '';
+    const d = new Date(c.created_at);
+    if (isNaN(d.getTime())) return '';
+    const s = d.toLocaleString('pt-BR', {
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
+    return '<span class="fb-comment-when">🕒 ' + esc(s) + '</span>';
   }
 
   // Localidade de quem avaliou (cidade, estado, país); avaliações anteriores à
