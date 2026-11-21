@@ -67,7 +67,7 @@ export default async function handler(req, res) {
     const accesses = Number(accessRes.count || 0);
     const submissions = Number(submitRes.count || 0);
 
-    // "Chegaram na revelação" = clique em "Confirmar" (form_submissions), que
+    // "Caíram na simulação" = clique em "Confirmar" (form_submissions), que
     // leva direto à revelação e já tem histórico. Só 'timeout' é evento novo.
     const stageCount = {};
     (funnelRes.data || []).forEach((r) => { stageCount[r.stage] = Number(r.count || 0); });
