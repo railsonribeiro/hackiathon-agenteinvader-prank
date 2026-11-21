@@ -5,6 +5,38 @@
   let locData = { country: [], state: [], city: [] };
   let locLevel = 'state'; // padrão: estado
 
+  // CAPTCHA do login (Cloudflare Turnstile). Só entra em ação se houver Site key
+  // (via /api/config); sem ela o login segue normal.
+  let siteKey = '';
+  let captchaToken = '';
+  let captchaWidgetId = null;
+
+  // Desenha o widget quando a Site key e o script do Turnstile já existem (a
+  // ordem dos dois é incerta — este é chamado nas duas pontas).
+  function renderCaptcha() {
+    if (!siteKey || !window.turnstile || captchaWidgetId !== null) return;
+    const box = el('turnstileBox');
+    if (!box) return;
+    try {
+      captchaWidgetId = window.turnstile.render(box, {
+        sitekey: siteKey,
+        callback: (t) => { captchaToken = t; },
+        'expired-callback': () => { captchaToken = ''; },
+        'error-callback': () => { captchaToken = ''; },
+      });
+    } catch (e) { /* sem captcha o login segue */ }
+  }
+
+  function resetCaptcha() {
+    captchaToken = '';
+    if (window.turnstile && captchaWidgetId !== null) {
+      try { window.turnstile.reset(captchaWidgetId); } catch (e) { /* ignore */ }
+    }
+  }
+
+  // O script do Turnstile chama isto ao carregar (?onload=onloadTurnstileCallback).
+  window.onloadTurnstileCallback = renderCaptcha;
+
   init();
 
   async function init() {
@@ -24,11 +56,14 @@
       sb = window.supabase.createClient(cfg.url, cfg.anonKey, {
         auth: { persistSession: true, autoRefreshToken: true },
       });
+      siteKey = cfg.captchaSiteKey || '';
     } catch (e) {
       el('note').textContent =
         'Configuração de login indisponível. Falta SUPABASE_URL / SUPABASE_ANON_KEY no ambiente?';
       return;
     }
+
+    renderCaptcha(); // caso o script do Turnstile já tenha carregado
 
     el('loginForm').addEventListener('submit', onLogin);
     el('logout').addEventListener('click', onLogout);
@@ -60,13 +95,19 @@
   async function onLogin(e) {
     e.preventDefault();
     el('loginError').textContent = '';
+    if (siteKey && !captchaToken) {
+      el('loginError').textContent = 'Confirme que você não é um robô.';
+      return;
+    }
     el('loginBtn').disabled = true;
     const email = el('email').value.trim();
     const password = el('password').value;
     try {
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      const options = siteKey ? { captchaToken } : {};
+      const { data, error } = await sb.auth.signInWithPassword({ email, password, options });
       if (error) {
         el('loginError').textContent = 'E-mail ou senha inválidos.';
+        resetCaptcha(); // o token do Turnstile é de uso único
         return;
       }
       showAuthed(data.session);
@@ -82,6 +123,7 @@
     el('email').value = '';
     el('password').value = '';
     el('note').textContent = '';
+    resetCaptcha(); // novo desafio para o próximo login
     showLogin();
   }
 

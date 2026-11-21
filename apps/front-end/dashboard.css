@@ -57,6 +57,8 @@
 }
 .login-card button:disabled { opacity: 0.6; cursor: default; }
 .login-error { color: var(--red-soft); font-size: 13px; min-height: 18px; margin: 0; text-align: center; }
+.turnstile-box:empty { display: none; }
+.turnstile-box { min-height: 0; }
 
 .authbar {
   display: flex; align-items: center; justify-content: flex-end; gap: 12px;

@@ -78,8 +78,19 @@ No projeto do Vercel → **Settings → Environment Variables**, adicione:
 | `SUPABASE_URL` | Project URL do Supabase |
 | `SUPABASE_SERVICE_ROLE_KEY` | chave service_role / secret (servidor) |
 | `SUPABASE_ANON_KEY` | chave anon / publishable (pública, para o login) |
+| `TURNSTILE_SITE_KEY` | *(opcional)* Site key do Cloudflare Turnstile — liga o CAPTCHA do login (ver abaixo) |
 
 Depois de adicionar/alterar variáveis, faça um **Redeploy** para elas valerem.
+
+### 3b. CAPTCHA no login do painel (opcional, recomendado)
+
+O login do painel usa o Supabase Auth, cujo rate limit é por IP. Para barrar força bruta, dá para exigir um CAPTCHA (Cloudflare Turnstile, gratuito). São três passos, **nesta ordem**, para o login não quebrar no meio:
+
+1. **Cloudflare → Turnstile → Add widget**: informe os domínios (`admin.agenteinvader.com.br` e `localhost` para testar), crie e copie a **Site key** (pública) e a **Secret key**.
+2. **Vercel**: cadastre `TURNSTILE_SITE_KEY` com a Site key e faça **Redeploy**. (A partir daqui o widget aparece no login e já manda o token; o Supabase ainda não exige — então o login segue funcionando.)
+3. **Supabase → Authentication → Attack Protection** (`/dashboard/project/_/auth/protection`): ligue **Enable CAPTCHA protection**, escolha **Turnstile** e cole a **Secret key**, e **Save**. O Supabase passa a validar o token.
+
+A Secret key fica **só** no Supabase (é ele que valida o token com o Cloudflare); o nosso backend não precisa dela. Sem a `TURNSTILE_SITE_KEY`, o login funciona normalmente, sem CAPTCHA.
 
 ### 4. Aponte o subdomínio
 
