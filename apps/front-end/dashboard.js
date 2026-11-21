@@ -216,6 +216,18 @@
       'média de ' + avgPct + '% dos campos por envio</span>' +
       '</div>';
 
+    // A medição começou depois de o site já estar no ar: envios anteriores
+    // ficam com correct_count nulo e não há como recuperá-los (o conteúdo
+    // digitado nunca sai do navegador). Mostra a base real para o "x/y" não
+    // parecer o total de envios.
+    const total = Number(fill.total) || 0;
+    const semMedicao = total - answered;
+    if (semMedicao > 0) {
+      html +=
+        '<p class="fill-note">Medido em ' + answered + ' de ' + total + ' envios &mdash; ' +
+        'os ' + semMedicao + ' anteriores a esta medição (20/11, ~21h) não têm o dado.</p>';
+    }
+
     // Distribuição: quantos acertaram 4, 3, 2, 1 e 0 dos campos.
     const dist = fill.distribution || {};
     const maxBar = Math.max(1, ...[0, 1, 2, 3, 4].map((n) => Number(dist[n] || 0)));
