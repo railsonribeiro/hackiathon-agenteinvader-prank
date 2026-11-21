@@ -107,7 +107,7 @@ export default async function handler(req, res) {
     const reachedReveal = submissions + timeouts;
     const funnel = [
       { key: 'open', label: 'Abriram a página', count: accesses },
-      { key: 'reveal', label: 'Caíram no formulário e viram a revelação', count: submissions, base: accesses, baseLabel: 'dos que abriram' },
+      { key: 'reveal', label: 'Preencheram o formulário — caíram no phishing', count: submissions, base: accesses, baseLabel: 'dos que abriram' },
       { key: 'timeout', label: 'Não preencheram — viram a revelação ao esgotar o tempo', count: timeouts, base: accesses, baseLabel: 'dos que abriram' },
       { key: 'feedback', label: 'Avaliaram a simulação', count: fbCount, base: reachedReveal, baseLabel: 'dos que viram a revelação' },
     ];
