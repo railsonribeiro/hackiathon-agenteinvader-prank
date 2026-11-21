@@ -182,9 +182,37 @@
     clicked_unknown: 'Preenchimento não medido (cliques antes de 21/11, 12h)',
   };
 
+  // "Por qual caminho" é detalhamento do degrau "Chegaram à tela de revelação"
+  // (não é uma etapa do funil): fica recolhido e abre pelo botão "?" do degrau.
+  // O estado sobrevive a um novo render (ex.: recarregar as métricas).
+  let fnPathsOpen = false;
+  const fnHelpBtn = () =>
+    '<button type="button" class="fn-help' + (fnPathsOpen ? ' open' : '') + '"' +
+    ' aria-expanded="' + fnPathsOpen + '" aria-controls="fnPaths"' +
+    ' title="Por qual caminho chegaram à revelação?" aria-label="Por qual caminho chegaram à revelação?">' +
+    '<span class="fn-help-q" aria-hidden="true">?</span>' +
+    '<span class="fn-help-chev" aria-hidden="true">&#9662;</span>' +
+    '</button>';
+
+  function bindFunnelToggle(box) {
+    if (box.dataset.toggleBound) return;
+    box.dataset.toggleBound = '1';
+    box.addEventListener('click', (e) => {
+      const btn = e.target.closest('.fn-help');
+      if (!btn) return;
+      const panel = el('fnPaths');
+      if (!panel) return;
+      fnPathsOpen = !fnPathsOpen;
+      panel.hidden = !fnPathsOpen;
+      btn.classList.toggle('open', fnPathsOpen);
+      btn.setAttribute('aria-expanded', String(fnPathsOpen));
+    });
+  }
+
   function renderFunnel(stages) {
     const box = el('funnel');
     if (!box) return;
+    bindFunnelToggle(box);
     if (!stages.length) {
       box.innerHTML = '<p class="muted">Sem dados ainda.</p>';
       return;
@@ -200,8 +228,9 @@
     const rated = n('feedback');
 
     // Um degrau: título, número, barra e % sobre o degrau de cima.
-    const stepHead = (label, count, base, baseLabel) =>
-      '<div class="fn-top"><span class="fn-label">' + esc(label) + '</span>' +
+    // 'extra': HTML opcional ao lado do rótulo (ex.: botão de detalhamento).
+    const stepHead = (label, count, base, baseLabel, extra) =>
+      '<div class="fn-top"><span class="fn-label">' + esc(label) + (extra || '') + '</span>' +
       '<span class="fn-count">' + count + '</span></div>' +
       '<span class="fn-bar"><span class="fn-fill" style="width:' + (base == null ? 100 : pctOf(count, base)) + '%"></span></span>' +
       (base == null ? '' : '<span class="fn-step">' + pctOf(count, base) + '% ' + esc(baseLabel) + '</span>');
@@ -235,8 +264,11 @@
       '<div class="fn-stair fn-lvl0">' +
       stepHead('Acessos à página', opened, null) +
       '<div class="fn-stair fn-lvl1">' +
-      stepHead('Chegaram à tela de revelação', revealed, opened, 'dos acessos') +
-      (paths.length ? '<div class="fn-paths"><div class="fn-paths-title">Por qual caminho</div>' + pathRows + '</div>' : '') +
+      stepHead('Chegaram à tela de revelação', revealed, opened, 'dos acessos', paths.length ? fnHelpBtn() : '') +
+      (paths.length
+        ? '<div class="fn-paths" id="fnPaths"' + (fnPathsOpen ? '' : ' hidden') + '>' +
+          '<div class="fn-paths-title">Por qual caminho</div>' + pathRows + '</div>'
+        : '') +
       (by.feedback
         ? '<div class="fn-stair fn-lvl2">' +
           stepHead('Avaliaram a simulação', rated, revealed, 'de quem chegou à revelação') +

@@ -146,6 +146,19 @@
   content: ''; position: absolute; left: -2px; top: 9px; width: 10px;
   border-top: 2px solid rgba(226, 32, 59, 0.35);
 }
+/* Botão "?" que abre/fecha o detalhamento "Por qual caminho". */
+.fn-help {
+  display: inline-flex; align-items: center; gap: 3px; margin-left: 8px; vertical-align: 1px;
+  padding: 1px 7px 1px 6px; border-radius: 999px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--muted); font: inherit; font-size: 11px; line-height: 16px;
+}
+.fn-help:hover, .fn-help:focus-visible { color: #fff; border-color: var(--red); outline: none; }
+.fn-help.open { color: #fff; border-color: var(--red); background: rgba(226, 32, 59, 0.15); }
+.fn-help-q { font-weight: 700; }
+.fn-help-chev { font-size: 9px; transition: transform 0.15s ease; }
+.fn-help.open .fn-help-chev { transform: rotate(180deg); }
+.fn-paths[hidden] { display: none; }
 .fn-paths {
   margin: 12px 0 0; padding: 10px 12px; border-radius: 10px;
   background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);
