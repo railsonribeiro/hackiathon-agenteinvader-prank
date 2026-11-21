@@ -8,6 +8,9 @@
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/dashboard.css" />
   <script src="/vendor/supabase.js"></script>
+  <!-- Cloudflare Turnstile (CAPTCHA do login). Render explícito: o widget só é
+       desenhado quando há Site key (via /api/config). -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onloadTurnstileCallback" async defer></script>
 </head>
 <body class="scene">
   <div class="scanlines"></div>
@@ -27,6 +30,7 @@
         <label>Senha
           <input type="password" id="password" required autocomplete="current-password" />
         </label>
+        <div id="turnstileBox" class="turnstile-box"></div>
         <button type="submit" id="loginBtn">Entrar</button>
         <p class="login-error" id="loginError"></p>
       </form>
