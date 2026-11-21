@@ -67,8 +67,8 @@ export default async function handler(req, res) {
     const accesses = Number(accessRes.count || 0);
     const submissions = Number(submitRes.count || 0);
 
-    // "Chegaram na revelação" = clique em "Confirmar" (form_submissions), que
-    // leva direto à revelação e já tem histórico. Só 'official' é evento novo.
+    // "Caíram na simulação" = clique em "Confirmar" (form_submissions), que
+    // leva direto à revelação e já tem histórico. Só 'timeout' é evento novo.
     const stageCount = {};
     (funnelRes.data || []).forEach((r) => { stageCount[r.stage] = Number(r.count || 0); });
 
@@ -107,9 +107,8 @@ export default async function handler(req, res) {
     const reachedReveal = submissions + timeouts;
     const funnel = [
       { key: 'open', label: 'Abriram a página', count: accesses },
-      { key: 'reveal', label: 'Caíram no formulário e viram a revelação', count: submissions, base: accesses, baseLabel: 'dos que abriram' },
+      { key: 'reveal', label: 'Preencheram o formulário — caíram no phishing', count: submissions, base: accesses, baseLabel: 'dos que abriram' },
       { key: 'timeout', label: 'Não preencheram — viram a revelação ao esgotar o tempo', count: timeouts, base: accesses, baseLabel: 'dos que abriram' },
-      { key: 'official', label: 'Clicaram no link oficial', count: stageCount.official || 0, base: reachedReveal, baseLabel: 'dos que viram a revelação' },
       { key: 'feedback', label: 'Avaliaram a simulação', count: fbCount, base: reachedReveal, baseLabel: 'dos que viram a revelação' },
     ];
 

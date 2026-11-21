@@ -6,7 +6,7 @@
   // isso para o painel separar quem caiu de quem não caiu.
   let revealPath = null;
 
-  // Dispara um estágio do funil (official). Agregado, sem dado do usuário.
+  // Dispara um estágio do funil. Agregado, sem dado do usuário.
   const track = (stage) =>
     fetch('/api/event', {
       method: 'POST',
@@ -19,10 +19,6 @@
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   }).catch(() => {});
-
-  // Clique no link oficial do hackathon, dentro da revelação.
-  const official = el('officialLink');
-  if (official) official.addEventListener('click', () => track('official'));
 
   // Feedback da revelação: estrelas 1-5 (radiogroup acessível) + comentário.
   (function feedback() {
