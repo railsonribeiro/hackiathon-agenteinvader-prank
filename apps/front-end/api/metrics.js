@@ -152,7 +152,6 @@ export default async function handler(req, res) {
     res.status(200).json({
       accesses,
       submissions,
-      timeouts,
       locations,
       funnel,
       feedback: { count: fbCount, avg: fbAvg, distribution, byPath, comments },
