@@ -105,26 +105,26 @@ export default async function handler(req, res) {
     // ao ramo acima dele, o que confunde.
     const timeouts = stageCount.timeout || 0;
     const reachedReveal = submissions + timeouts;
-    // Quem clicou em "Confirmar" (todos caíram) se divide em: preencheu os
-    // campos, clicou sem preencher nada, ou sem medição (envio anterior à
-    // coleta de filled_count). Sub-etapas, com % sobre quem caiu.
+    // O funil só descreve o que cada pessoa FEZ, sem rótulo de caiu/não caiu
+    // (essa classificação fica nos cards do topo). Quem clicou em "Confirmar"
+    // aparece separado por preenchimento: preencheu os campos, não preencheu
+    // nada, ou sem medição (envio anterior à coleta de filled_count).
     const f = fillRes.data || {};
-    const fellFilled = Number(f.filled || 0);
-    const fellEmpty = Number(f.empty || 0);
-    const fellUnknown = Number(f.fill_unknown || 0);
-    const fellBase = { base: submissions, baseLabel: 'dos que caíram', sub: true };
+    const clickedFilled = Number(f.filled || 0);
+    const clickedEmpty = Number(f.empty || 0);
+    const clickedUnknown = Number(f.fill_unknown || 0);
+    const ofOpened = { base: accesses, baseLabel: 'dos que abriram' };
 
     const funnel = [
       { key: 'open', label: 'Abriram a página', count: accesses },
-      { key: 'reveal', label: 'Clicaram em Confirmar — caíram no phishing', count: submissions, base: accesses, baseLabel: 'dos que abriram' },
-      { key: 'fell_filled', label: 'Preencheram os campos', count: fellFilled, ...fellBase },
-      { key: 'fell_empty', label: 'Clicaram sem preencher nada', count: fellEmpty, ...fellBase },
+      { key: 'clicked_filled', label: 'Clicaram em Confirmar e preencheram os campos', count: clickedFilled, ...ofOpened },
+      { key: 'clicked_empty', label: 'Clicaram em Confirmar sem preencher os campos', count: clickedEmpty, ...ofOpened },
     ];
-    if (fellUnknown > 0) {
-      funnel.push({ key: 'fell_unknown', label: 'Sem medição (envios antigos)', count: fellUnknown, ...fellBase });
+    if (clickedUnknown > 0) {
+      funnel.push({ key: 'clicked_unknown', label: 'Clicaram em Confirmar — sem medição do preenchimento (envios antigos)', count: clickedUnknown, ...ofOpened });
     }
     funnel.push(
-      { key: 'timeout', label: 'Não preencheram — viram a revelação ao esgotar o tempo', count: timeouts, base: accesses, baseLabel: 'dos que abriram' },
+      { key: 'timeout', label: 'Esperaram o tempo esgotar — viram a revelação', count: timeouts, ...ofOpened },
       { key: 'feedback', label: 'Avaliaram a simulação', count: fbCount, base: reachedReveal, baseLabel: 'dos que viram a revelação' },
     );
 
@@ -152,6 +152,7 @@ export default async function handler(req, res) {
     res.status(200).json({
       accesses,
       submissions,
+      timeouts,
       locations,
       funnel,
       feedback: { count: fbCount, avg: fbAvg, distribution, byPath, comments },
