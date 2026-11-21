@@ -180,7 +180,6 @@
     clicked_filled: 'Preencheram ao menos um campo',
     clicked_empty: 'Deixaram todos os campos em branco',
     clicked_unknown: 'Preenchimento não medido (cliques antes de 21/11, 12h)',
-    timeout: 'Esperaram o cronômetro zerar',
   };
 
   function renderFunnel(stages) {
@@ -226,9 +225,11 @@
         fellKeys.map((k) => pathRow(esc(FN_PATH_LABELS[k] || by[k].label), n(k), fell, 'fn-path-sub')).join('') +
         '</div></div>';
     }
-    paths
-      .filter((k) => FN_FELL.indexOf(k) === -1)
-      .forEach((k) => { pathRows += pathRow(esc(FN_PATH_LABELS[k] || by[k].label), n(k), revealed, 'fn-path-main'); });
+    // Em paralelo a "Caíram no phishing": quem chegou à revelação porque o
+    // cronômetro zerou. Escopo = quem chegou à revelação (não o total de acessos).
+    if (by.timeout) {
+      pathRows += pathRow('<strong>Não caíram no phishing</strong><span class="fn-path-hint">Esperaram o cronômetro zerar</span>', n('timeout'), revealed, 'fn-path-main');
+    }
 
     box.innerHTML =
       '<div class="fn-stair fn-lvl0">' +
