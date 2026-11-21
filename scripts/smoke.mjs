@@ -38,7 +38,7 @@ async function sel(rel) {
 
 console.log('Escrita (service_role precisa de GRANT em cada tabela):');
 await ins('hits', { created_at: now(), country: 'BR', region: 'SP', city: 'CI' });
-await ins('form_submissions', { created_at: now(), ip_hash: tag, correct_count: 4 });
+await ins('form_submissions', { created_at: now(), ip_hash: tag, correct_count: 4, filled_count: 4 });
 await ins('funnel_events', { created_at: now(), stage: 'official' });
 await ins('funnel_events', { created_at: now(), stage: 'timeout' });
 await ins('feedback', { created_at: now(), rating: 5, comment: tag, path: 'timeout', country: 'BR', region: 'SP', city: 'CI' });

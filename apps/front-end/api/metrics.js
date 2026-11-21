@@ -105,16 +105,31 @@ export default async function handler(req, res) {
     // ao ramo acima dele, o que confunde.
     const timeouts = stageCount.timeout || 0;
     const reachedReveal = submissions + timeouts;
+    // Quem clicou em "Confirmar" (todos caíram) se divide em: preencheu os
+    // campos, clicou sem preencher nada, ou sem medição (envio anterior à
+    // coleta de filled_count). Sub-etapas, com % sobre quem caiu.
+    const f = fillRes.data || {};
+    const fellFilled = Number(f.filled || 0);
+    const fellEmpty = Number(f.empty || 0);
+    const fellUnknown = Number(f.fill_unknown || 0);
+    const fellBase = { base: submissions, baseLabel: 'dos que caíram', sub: true };
+
     const funnel = [
       { key: 'open', label: 'Abriram a página', count: accesses },
-      { key: 'reveal', label: 'Preencheram o formulário — caíram no phishing', count: submissions, base: accesses, baseLabel: 'dos que abriram' },
+      { key: 'reveal', label: 'Clicaram em Confirmar — caíram no phishing', count: submissions, base: accesses, baseLabel: 'dos que abriram' },
+      { key: 'fell_filled', label: 'Preencheram os campos', count: fellFilled, ...fellBase },
+      { key: 'fell_empty', label: 'Clicaram sem preencher nada', count: fellEmpty, ...fellBase },
+    ];
+    if (fellUnknown > 0) {
+      funnel.push({ key: 'fell_unknown', label: 'Sem medição (envios antigos)', count: fellUnknown, ...fellBase });
+    }
+    funnel.push(
       { key: 'timeout', label: 'Não preencheram — viram a revelação ao esgotar o tempo', count: timeouts, base: accesses, baseLabel: 'dos que abriram' },
       { key: 'feedback', label: 'Avaliaram a simulação', count: fbCount, base: reachedReveal, baseLabel: 'dos que viram a revelação' },
-    ];
+    );
 
     // Preenchimento com os dados do PDF: só quantos campos bateram (0..4) por
     // envio. Nenhum valor digitado é guardado.
-    const f = fillRes.data || {};
     const answered = Number(f.answered || 0);
     const correctSum = Number(f.correct_sum || 0);
     const fill = {

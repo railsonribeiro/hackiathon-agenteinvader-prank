@@ -176,16 +176,18 @@
     box.innerHTML = stages
       .map((s, i) => {
         const count = Number(s.count) || 0;
-        // Largura relativa ao topo do funil (aberturas).
-        const pct = Math.min(100, Math.round((count / top) * 100));
         // Conversão: o servidor manda 'base' (sobre qual número a etapa converte,
         // por causa dos dois caminhos até a revelação); sem ela, usa a etapa acima.
         const base = s.base != null ? Number(s.base) : (i > 0 ? Number(stages[i - 1].count) || 0 : null);
+        // Largura relativa ao topo do funil (aberturas); sub-etapas (detalhe de
+        // quem caiu) usam a própria base, senão a barra ficaria minúscula.
+        const ref = s.sub && base > 0 ? base : top;
+        const pct = Math.min(100, Math.round((count / ref) * 100));
         const step = base && base > 0 ? Math.min(100, Math.round((count / base) * 100)) : null;
         const baseLabel = s.baseLabel ? ' ' + s.baseLabel : ' da etapa anterior';
         const stepTag = step != null ? '<span class="fn-step">' + step + '%' + esc(baseLabel) + '</span>' : '';
         return (
-          '<div class="fn-row">' +
+          '<div class="fn-row' + (s.sub ? ' fn-sub' : '') + '">' +
           '<div class="fn-top"><span class="fn-label">' + esc(s.label) + '</span>' +
           '<span class="fn-count">' + count + '</span></div>' +
           '<span class="fn-bar"><span class="fn-fill" style="width:' + pct + '%"></span></span>' +
