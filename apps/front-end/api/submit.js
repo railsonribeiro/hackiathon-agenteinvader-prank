@@ -23,6 +23,17 @@ function correctCount(v) {
   return n;
 }
 
+// Nº de campos preenchidos (0–4), também calculado no navegador. Só a
+// quantidade de campos — nada do conteúdo, nem o tamanho do que foi digitado.
+// Um campo correto é necessariamente preenchido: se vier menor que o nº de
+// corretos, a combinação é inválida e o valor vira nulo.
+function filledCount(v, correct) {
+  const n = correctCount(v);
+  if (n == null) return null;
+  if (correct != null && n < correct) return null;
+  return n;
+}
+
 // Conta UM clique no botão "Confirmar" do formulário de simulação.
 // IMPORTANTE: não recebe o CONTEÚDO do que foi digitado — só quantos dos 4
 // campos batiam com os dados do PDF (0 a 4), para ver quem preencheu com os
@@ -32,19 +43,25 @@ export default async function handler(req, res) {
   try {
     const ipHash = clientIpHash(req);
     const correct = correctCount(req.body && req.body.correct);
+    const filled = filledCount(req.body && req.body.filled, correct);
 
     // upsert com ignoreDuplicates => INSERT ... ON CONFLICT (ip_hash) DO NOTHING.
     // O 2º clique do mesmo IP bate no índice único e é ignorado, sem erro.
-    await supabase
-      .from('form_submissions')
-      .upsert(
-        {
-          ip_hash: ipHash,
-          created_at: new Date().toISOString(),
-          correct_count: correct,
-        },
-        { onConflict: 'ip_hash', ignoreDuplicates: true },
-      );
+    const row = {
+      ip_hash: ipHash,
+      created_at: new Date().toISOString(),
+      correct_count: correct,
+      filled_count: filled,
+    };
+    const opts = { onConflict: 'ip_hash', ignoreDuplicates: true };
+    const { error } = await supabase.from('form_submissions').upsert(row, opts);
+
+    // Se o front subir antes da migration de filled_count (deploys separados),
+    // a coluna ainda não existe: grava sem ela para não perder o clique.
+    if (error && /filled_count/.test(error.message || '')) {
+      delete row.filled_count;
+      await supabase.from('form_submissions').upsert(row, opts);
+    }
 
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json({ ok: true });

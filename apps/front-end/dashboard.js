@@ -145,6 +145,7 @@
       .then((data) => {
         el('accesses').textContent = data.accesses || 0;
         el('submissions').textContent = data.submissions || 0;
+        el('timeouts').textContent = data.timeouts || 0;
         renderFunnel(data.funnel || []);
         renderFill(data.fill || null);
         renderFeedback(data.feedback || null);

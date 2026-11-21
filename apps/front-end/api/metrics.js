@@ -105,16 +105,31 @@ export default async function handler(req, res) {
     // ao ramo acima dele, o que confunde.
     const timeouts = stageCount.timeout || 0;
     const reachedReveal = submissions + timeouts;
+    // O funil só descreve o que cada pessoa FEZ, sem rótulo de caiu/não caiu
+    // (essa classificação fica nos cards do topo). Quem clicou em "Confirmar"
+    // aparece separado por preenchimento: preencheu os campos, não preencheu
+    // nada, ou sem medição (envio anterior à coleta de filled_count).
+    const f = fillRes.data || {};
+    const clickedFilled = Number(f.filled || 0);
+    const clickedEmpty = Number(f.empty || 0);
+    const clickedUnknown = Number(f.fill_unknown || 0);
+    const ofOpened = { base: accesses, baseLabel: 'dos que abriram' };
+
     const funnel = [
       { key: 'open', label: 'Abriram a página', count: accesses },
-      { key: 'reveal', label: 'Preencheram o formulário — caíram no phishing', count: submissions, base: accesses, baseLabel: 'dos que abriram' },
-      { key: 'timeout', label: 'Não preencheram — viram a revelação ao esgotar o tempo', count: timeouts, base: accesses, baseLabel: 'dos que abriram' },
-      { key: 'feedback', label: 'Avaliaram a simulação', count: fbCount, base: reachedReveal, baseLabel: 'dos que viram a revelação' },
+      { key: 'clicked_filled', label: 'Clicaram em Confirmar e preencheram os campos', count: clickedFilled, ...ofOpened },
+      { key: 'clicked_empty', label: 'Clicaram em Confirmar sem preencher os campos', count: clickedEmpty, ...ofOpened },
     ];
+    if (clickedUnknown > 0) {
+      funnel.push({ key: 'clicked_unknown', label: 'Clicaram em Confirmar — sem medição do preenchimento (envios antigos)', count: clickedUnknown, ...ofOpened });
+    }
+    funnel.push(
+      { key: 'timeout', label: 'Esperaram o tempo esgotar — viram a revelação', count: timeouts, ...ofOpened },
+      { key: 'feedback', label: 'Avaliaram a simulação', count: fbCount, base: reachedReveal, baseLabel: 'dos que viram a revelação' },
+    );
 
     // Preenchimento com os dados do PDF: só quantos campos bateram (0..4) por
     // envio. Nenhum valor digitado é guardado.
-    const f = fillRes.data || {};
     const answered = Number(f.answered || 0);
     const correctSum = Number(f.correct_sum || 0);
     const fill = {
@@ -137,6 +152,7 @@ export default async function handler(req, res) {
     res.status(200).json({
       accesses,
       submissions,
+      timeouts,
       locations,
       funnel,
       feedback: { count: fbCount, avg: fbAvg, distribution, byPath, comments },

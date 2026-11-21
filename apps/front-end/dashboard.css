@@ -15,6 +15,7 @@
 }
 .num { font-size: 40px; font-weight: 700; color: #fff; text-shadow: 0 0 24px rgba(226, 32, 59, 0.4); }
 .lbl { color: var(--muted); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px; }
+.stat-desc { color: var(--muted); font-size: 11px; line-height: 1.4; margin-top: 8px; opacity: 0.85; }
 
 .panel {
   background: var(--card); border: 1px solid var(--line);

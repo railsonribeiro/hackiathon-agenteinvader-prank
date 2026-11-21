@@ -154,18 +154,23 @@
     // Conta o clique em confirmar. O que foi digitado NÃO sai do navegador: aqui
     // comparamos cada campo com o valor do PDF e enviamos só QUANTOS dos 4 campos
     // bateram (0 a 4) — pra ver quem preencheu com os dados do PDF, sem enviar
-    // nem guardar nada do conteúdo.
+    // nem guardar nada do conteúdo. Também vai QUANTOS campos estavam
+    // preenchidos (0 a 4), para o painel separar quem clicou sem preencher —
+    // só a quantidade de campos, nunca o conteúdo nem o tamanho dele.
     const EXPECTED = { fCracha: '00994', fPlaca: 'RQK-7A26', fSala: '1407', fPedido: '4471' };
     const norm = (s) => (s || '').trim().toUpperCase().replace(/\s+/g, '');
     let correct = 0;
+    let filled = 0;
     Object.keys(EXPECTED).forEach((id) => {
-      if (el(id) && norm(el(id).value) === norm(EXPECTED[id])) correct += 1;
+      const v = el(id) ? norm(el(id).value) : '';
+      if (v) filled += 1;
+      if (v && v === norm(EXPECTED[id])) correct += 1;
     });
 
     fetch('/api/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ correct }),
+      body: JSON.stringify({ correct, filled }),
     }).catch(() => {});
 
     runScan(SCAN_FORM, 'form');
