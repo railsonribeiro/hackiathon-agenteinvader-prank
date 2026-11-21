@@ -278,7 +278,10 @@
       '</div>';
   }
 
-  // ---- Preencheram com os dados do PDF (só nº de campos corretos, 0..4) ----
+  // ---- Acertos com os dados do PDF (só nº de campos corretos, 0..4) ----
+  // Visual propositalmente diferente do card de avaliações: frase-resumo em
+  // vez de número grande, e 4 marcadores por linha (campo certo/errado) em vez
+  // de barras de distribuição.
   function renderFill(fill) {
     const box = el('fill');
     if (!box) return;
@@ -290,38 +293,37 @@
     const allOk = Number(fill.allOk) || 0;
     const pct = Math.round((allOk / answered) * 100);
     const avgPct = Number(fill.avgPct) || 0;
+    const avg = (Number(fill.avg) || 0).toFixed(1).replace('.', ',');
 
     let html =
-      '<div class="fill-summary">' +
-      '<span class="fill-big">' + allOk + '<span class="fill-of">/' + answered + '</span></span>' +
-      '<span class="fill-cap">acertaram os <strong>4 campos</strong> do PDF (' + pct + '%) &middot; ' +
-      'média de ' + avgPct + '% dos campos por envio</span>' +
-      '</div>';
+      '<p class="pdf-lead"><strong>' + allOk + ' de ' + answered + '</strong> envios medidos ' +
+      'acertaram os 4 campos <span class="pdf-lead-pct">(' + pct + '%)</span></p>' +
+      '<p class="pdf-sub">Média de ' + avg + ' de 4 campos certos por envio (' + avgPct + '%)</p>';
 
     // A medição começou depois de o site já estar no ar: envios anteriores
     // ficam com correct_count nulo e não há como recuperá-los (o conteúdo
-    // digitado nunca sai do navegador). Mostra a base real para o "x/y" não
-    // parecer o total de envios.
+    // digitado nunca sai do navegador).
     const total = Number(fill.total) || 0;
     const semMedicao = total - answered;
     if (semMedicao > 0) {
       html +=
-        '<p class="fill-note">Medido em ' + answered + ' de ' + total + ' envios &mdash; ' +
-        'os ' + semMedicao + ' anteriores a esta medição (20/11, ~21h) não têm o dado.</p>';
+        '<p class="pdf-sub">Medido em ' + answered + ' de ' + total + ' envios &mdash; ' +
+        'os ' + semMedicao + ' anteriores a 20/11 (~21h) não têm o dado.</p>';
     }
 
-    // Distribuição: quantos acertaram 4, 3, 2, 1 e 0 dos campos.
+    // Uma linha por nº de acertos: 4 marcadores (certo/errado) e quantos envios.
     const dist = fill.distribution || {};
-    const maxBar = Math.max(1, ...[0, 1, 2, 3, 4].map((n) => Number(dist[n] || 0)));
-    html += '<div class="fill-rows">';
+    html += '<div class="pdf-rows" role="list">';
     for (let n = 4; n >= 0; n--) {
       const c = Number(dist[n] || 0);
-      const w = Math.round((c / maxBar) * 100);
+      let dots = '';
+      for (let i = 0; i < 4; i++) dots += '<span class="pdf-dot' + (i < n ? ' ok' : '') + '"></span>';
       html +=
-        '<div class="fill-row">' +
-        '<span class="fill-lbl">' + n + ' de 4</span>' +
-        '<span class="loc-bar"><span class="loc-fill" style="width:' + w + '%"></span></span>' +
-        '<span class="fill-count">' + c + '</span>' +
+        '<div class="pdf-row' + (c ? '' : ' empty') + '" role="listitem">' +
+        '<span class="pdf-dots" aria-hidden="true">' + dots + '</span>' +
+        '<span class="pdf-lbl">' + (n === 1 ? '1 campo certo' : n + ' campos certos') +
+        (n === 0 ? '<span class="pdf-hint">errou todos ou deixou em branco</span>' : '') + '</span>' +
+        '<span class="pdf-count">' + c + (c === 1 ? ' envio' : ' envios') + '</span>' +
         '</div>';
     }
     html += '</div>';
