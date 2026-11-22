@@ -180,6 +180,28 @@
 .report-btn { display: inline-flex; align-items: center; gap: 5px; }
 .report-btn:not(:disabled):hover { color: #fff; border-color: var(--red); }
 .report-btn:disabled { opacity: 0.45; cursor: default; }
+.report-btn[aria-expanded="true"] { color: #fff; border-color: var(--red); background: rgba(226, 32, 59, 0.15); }
+
+/* Painel de opções do relatório */
+.report-opts[hidden] { display: none; }
+.report-opts {
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px 18px; margin: 0 0 18px;
+}
+.ro-head { color: #fff; font-size: 14px; font-weight: 600; letter-spacing: 0.04em; margin-bottom: 2px; }
+.ro-note { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
+.ro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; }
+.ro-item { display: flex; align-items: center; gap: 8px; color: #d2d6dc; font-size: 13px; cursor: pointer; }
+.ro-item input { accent-color: var(--red); width: 15px; height: 15px; cursor: pointer; }
+.ro-ind { padding-left: 22px; color: var(--muted); font-size: 12.5px; }
+.ro-off { opacity: 0.45; }
+.ro-loc { flex-wrap: wrap; gap: 6px 14px; }
+.ro-loc-lbl { color: var(--muted); font-size: 12.5px; }
+.ro-loc label { display: inline-flex; align-items: center; gap: 5px; color: #d2d6dc; font-size: 12.5px; cursor: pointer; }
+.ro-actions { display: flex; gap: 10px; margin-top: 16px; }
+.ro-gen { color: #fff; border-color: var(--red); background: linear-gradient(90deg, var(--red), var(--red-soft)); font-weight: 600; }
+.ro-gen:hover { opacity: 0.92; }
+@media (max-width: 520px) { .ro-grid { grid-template-columns: 1fr; } }
 
 /* Expandir detalhes dos acertos com o PDF */
 .pdf-toggle {

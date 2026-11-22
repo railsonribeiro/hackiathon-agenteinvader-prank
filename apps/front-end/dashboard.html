@@ -37,8 +37,32 @@
     <div id="content" class="hidden">
       <div class="authbar">
         <span id="whoami" class="muted"></span>
-        <button id="reportBtn" class="linkbtn report-btn" type="button" disabled>📄 Relatório PDF</button>
+        <button id="reportBtn" class="linkbtn report-btn" type="button" aria-expanded="false" aria-controls="reportOptions" disabled>📄 Relatório PDF</button>
         <button id="logout" class="linkbtn">Sair</button>
+      </div>
+
+      <div id="reportOptions" class="report-opts" hidden>
+        <div class="ro-head">Montar relatório em PDF</div>
+        <p class="ro-note">Escolha o que incluir e como agrupar. O relatório usa só os dados agregados já carregados.</p>
+        <div class="ro-grid">
+          <label class="ro-item"><input type="checkbox" data-opt="resumo" checked> Resumo (acessos e quem caiu)</label>
+          <label class="ro-item"><input type="checkbox" data-opt="jornada" checked> Jornada na simulação (funil)</label>
+          <label class="ro-item"><input type="checkbox" data-opt="acertos" checked> Acertos com os dados do PDF</label>
+          <label class="ro-item ro-ind"><input type="checkbox" data-opt="acertosDist" checked> Distribuição por faixa (0 a 4 campos)</label>
+          <label class="ro-item"><input type="checkbox" data-opt="avaliacoes" checked> Avaliações (nota e distribuição)</label>
+          <label class="ro-item ro-ind"><input type="checkbox" data-opt="comentarios" checked> Incluir comentários</label>
+          <label class="ro-item"><input type="checkbox" data-opt="localizacao" checked> Localização dos acessos</label>
+          <div class="ro-item ro-ind ro-loc">
+            <span class="ro-loc-lbl">Agrupar por:</span>
+            <label><input type="checkbox" data-loc="country" checked> País</label>
+            <label><input type="checkbox" data-loc="state" checked> Estado</label>
+            <label><input type="checkbox" data-loc="city" checked> Cidade</label>
+          </div>
+        </div>
+        <div class="ro-actions">
+          <button id="reportGen" class="linkbtn ro-gen" type="button">Gerar PDF</button>
+          <button id="reportCancel" class="linkbtn" type="button">Fechar</button>
+        </div>
       </div>
 
       <section class="stats stats-2">
