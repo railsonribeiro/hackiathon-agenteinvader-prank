@@ -1,12 +1,10 @@
 (() => {
   const el = (id) => document.getElementById(id);
 
-  // Por qual caminho a revelação apareceu: 'form' (preencheu e caiu) ou
-  // 'timeout' (o cronômetro esgotou e ela não preencheu). A avaliação envia
-  // isso para o painel separar quem caiu de quem não caiu.
+
+
   let revealPath = null;
 
-  // Dispara um estágio do funil. Agregado, sem dado do usuário.
   const track = (stage) =>
     fetch('/api/event', {
       method: 'POST',
@@ -14,13 +12,11 @@
       body: JSON.stringify({ stage }),
     }).catch(() => {});
 
-  // Conta o acesso (abertura da página). Não envia nenhum dado do usuário.
   fetch('/api/hit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   }).catch(() => {});
 
-  // Feedback da revelação: estrelas 1-5 (radiogroup acessível) + comentário.
   (function feedback() {
     const form = el('feedbackForm');
     if (!form) return;
@@ -30,13 +26,12 @@
     const hint = el('feedbackHint');
     let rating = 0;
 
-    // Reflete a nota no visual e no ARIA (aria-checked + foco rotativo).
     const paint = () => {
       stars.forEach((s) => {
         const v = Number(s.dataset.value);
         s.classList.toggle('on', v <= rating);
         s.setAttribute('aria-checked', v === rating ? 'true' : 'false');
-        // Roving tabindex: tabulável a selecionada; antes de escolher, a 1ª.
+
         s.tabIndex = v === (rating || 1) ? 0 : -1;
       });
     };
@@ -53,7 +48,6 @@
       s.addEventListener('click', () => select(Number(s.dataset.value), false));
     });
 
-    // Teclado: setas navegam/escolhem, Home/End vão aos extremos.
     if (starsBox) {
       starsBox.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); select(rating === 0 ? 1 : rating + 1, true); }
@@ -63,7 +57,7 @@
       });
     }
 
-    paint(); // estado inicial (1ª estrela tabulável)
+    paint();
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -77,14 +71,12 @@
         body: JSON.stringify({ rating, comment, path: revealPath }),
       }).catch(() => {});
 
-      // Mostra o agradecimento independente da resposta (não trava o usuário).
       form.classList.add('hidden');
       const thanks = el('feedbackThanks');
       if (thanks) thanks.classList.remove('hidden');
     });
   })();
 
-  // "Último dia" sempre com a data de hoje — clássico golpe de urgência.
   (function deadline() {
     const t = el('today');
     if (!t) return;
@@ -94,10 +86,8 @@
     }).format(new Date());
   })();
 
-  // Trava única: a revelação só acontece uma vez, pelo formulário OU pelo tempo.
   let revealed = false;
 
-  // Linhas do "scan" para cada caminho.
   const SCAN_FORM = [
     '> evidências recebidas',
     '> cruzando com a base de acesso...',
@@ -111,9 +101,8 @@
     '> análise: usuário não interagiu',
   ];
 
-  // Cronômetro falso de "urgência" — puro teatro de phishing. Ao zerar, se a
-  // pessoa NÃO preencheu o formulário, a revelação aparece mesmo assim: é a
-  // chance de quem desconfiou descobrir que era uma simulação.
+
+
   (function countdown() {
     const cd = el('countdown');
     if (!cd) return;
@@ -126,7 +115,7 @@
       if (secs === 0) {
         clearInterval(timer);
         if (!revealed) {
-          // Não caiu: registra o estágio no funil e roda a animação própria.
+
           track('timeout');
           runScan(SCAN_TIMEOUT, 'timeout');
         }
@@ -135,8 +124,7 @@
     const timer = setInterval(tick, 1000);
   })();
 
-  // Máscara da placa: maiúsculas, só letras/números e hífen automático depois
-  // das 3 primeiras posições (RQK7A26 -> RQK-7A26).
+
   (function placaMask() {
     const placa = el('fPlaca');
     if (!placa) return;
@@ -151,12 +139,10 @@
     e.preventDefault();
     if (revealed) return;
 
-    // Conta o clique em confirmar. O que foi digitado NÃO sai do navegador: aqui
-    // comparamos cada campo com o valor do PDF e enviamos só QUANTOS dos 4 campos
-    // bateram (0 a 4) — pra ver quem preencheu com os dados do PDF, sem enviar
-    // nem guardar nada do conteúdo. Também vai QUANTOS campos estavam
-    // preenchidos (0 a 4), para o painel separar quem clicou sem preencher —
-    // só a quantidade de campos, nunca o conteúdo nem o tamanho dele.
+
+
+
+
     const EXPECTED = { fCracha: '00994', fPlaca: 'RQK-7A26', fSala: '1407', fPedido: '4471' };
     const norm = (s) => (s || '').trim().toUpperCase().replace(/\s+/g, '');
     let correct = 0;
@@ -176,7 +162,6 @@
     runScan(SCAN_FORM, 'form');
   });
 
-  // Mostra a tela de "scan" e, ao fim da animação, revela pelo caminho dado.
   function runScan(lines, path) {
     if (revealed) return;
     revealed = true;
@@ -209,15 +194,14 @@
     })();
   }
 
-  // Revela a simulação. O HTML já traz a versão "caiu" (form); para o caminho
-  // 'timeout' (não caiu), troca título, textos e a pergunta da avaliação.
+
   function showReveal(path) {
     revealPath = path;
 
     if (path === 'timeout') {
       const setHtml = (id, html) => { const n = el(id); if (n) n.innerHTML = html; };
       const icon = el('revealIcon');
-      if (icon) icon.textContent = '🛡️'; // 🛡️
+      if (icon) icon.textContent = '🛡️';
       const title = el('revealTitle');
       if (title) { title.classList.remove('danger'); title.classList.add('safe'); title.textContent = 'VOCÊ NÃO CAIU.'; }
       setHtml('revealLead', 'Isto foi uma <strong>simulação de phishing</strong>.');
@@ -227,7 +211,7 @@
         '&mdash; inclusive um golpista. Quem preenchesse o formulário teria entregado tudo a ' +
         'um site desconhecido. Você não caiu &mdash; mas vale ver como o golpe tenta enganar.');
       setHtml('revealCallout', 'Você não enviou nada &mdash; e o que se digita aqui não sai do navegador.');
-      // Pergunta direcionada a quem desconfiou (reusa o campo de comentário).
+
       const ft = el('feedbackTitle');
       if (ft) ft.textContent = 'Você desconfiou? Conte pra gente';
       const fc = el('feedbackComment');
@@ -236,7 +220,7 @@
 
     const reveal = el('reveal');
     reveal.classList.remove('hidden');
-    // Leva o foco para a revelação (leitores de tela anunciam o título).
+
     reveal.focus();
   }
 })();
