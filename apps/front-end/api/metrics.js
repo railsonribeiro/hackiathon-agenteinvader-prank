@@ -88,7 +88,7 @@ export default async function handler(req, res) {
     });
     const comments = fbRows
       .filter((r) => r.comment)
-      .slice(0, 50)
+      .slice(0, 200)
       .map((r) => ({
         rating: Number(r.rating),
         comment: r.comment,
