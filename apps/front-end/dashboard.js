@@ -3,16 +3,12 @@
   let sb = null;
   let accessToken = null;
   let locData = { country: [], state: [], city: [] };
-  let locLevel = 'state'; // padrão: estado
+  let locLevel = 'state';
 
-  // CAPTCHA do login (Cloudflare Turnstile). Só entra em ação se houver Site key
-  // (via /api/config); sem ela o login segue normal.
   let siteKey = '';
   let captchaToken = '';
   let captchaWidgetId = null;
 
-  // Desenha o widget quando a Site key e o script do Turnstile já existem (a
-  // ordem dos dois é incerta — este é chamado nas duas pontas).
   function renderCaptcha() {
     if (!siteKey || !window.turnstile || captchaWidgetId !== null) return;
     const box = el('turnstileBox');
@@ -24,24 +20,21 @@
         'expired-callback': () => { captchaToken = ''; },
         'error-callback': () => { captchaToken = ''; },
       });
-    } catch (e) { /* sem captcha o login segue */ }
+    } catch (e) { }
   }
 
   function resetCaptcha() {
     captchaToken = '';
     if (window.turnstile && captchaWidgetId !== null) {
-      try { window.turnstile.reset(captchaWidgetId); } catch (e) { /* ignore */ }
+      try { window.turnstile.reset(captchaWidgetId); } catch (e) { }
     }
   }
 
-  // O script do Turnstile chama isto ao carregar (?onload=onloadTurnstileCallback).
   window.onloadTurnstileCallback = renderCaptcha;
 
   init();
 
   async function init() {
-    // Link "ver a página" aponta para o host da isca. No host admin, "/" é
-    // redirecionado de volta ao dashboard, então trocamos admin. -> siscritico.
     const simLink = el('simLink');
     if (simLink) {
       const h = location.hostname;
@@ -63,12 +56,11 @@
       return;
     }
 
-    renderCaptcha(); // caso o script do Turnstile já tenha carregado
+    renderCaptcha();
 
     el('loginForm').addEventListener('submit', onLogin);
     el('logout').addEventListener('click', onLogout);
 
-    // Toggle de nível da localização (País / Estado / Cidade).
     const toggle = el('locToggle');
     if (toggle) {
       toggle.addEventListener('click', (e) => {
@@ -107,7 +99,7 @@
       const { data, error } = await sb.auth.signInWithPassword({ email, password, options });
       if (error) {
         el('loginError').textContent = 'E-mail ou senha inválidos.';
-        resetCaptcha(); // o token do Turnstile é de uso único
+        resetCaptcha();
         return;
       }
       showAuthed(data.session);
@@ -123,7 +115,7 @@
     el('email').value = '';
     el('password').value = '';
     el('note').textContent = '';
-    resetCaptcha(); // novo desafio para o próximo login
+    resetCaptcha();
     showLogin();
   }
 
@@ -135,7 +127,6 @@
     loadMetrics();
   }
 
-  // ---- Métricas de negócio ----
   function loadMetrics() {
     fetch('/api/metrics', { headers: { Authorization: 'Bearer ' + accessToken } })
       .then((r) => {
@@ -164,27 +155,19 @@
       });
   }
 
-  // ---- Funil de conversão ----
-  // Escada de 2 degraus, só visual (os números vêm iguais da /api/metrics):
-  //   Abriram a página
-  //     └ Viram a revelação (soma dos caminhos) + por qual caminho
-  //         └ Avaliaram a simulação
-  // Cada barra e cada % são relativas ao degrau de cima.
+
+
   const FN_PATHS = ['clicked_filled', 'clicked_empty', 'clicked_unknown', 'timeout'];
-  // Quem clicou em Confirmar caiu no phishing, tenha preenchido ou não (e
-  // mesmo sem medição do preenchimento). Agrupamento só semântico, na tela.
+
   const FN_FELL = ['clicked_filled', 'clicked_empty', 'clicked_unknown'];
-  // Rótulos curtos dentro do quadro "Como chegaram à revelação" (o contexto
-  // já diz que é o caminho até a revelação). Sem rótulo aqui, usa o da API.
+
   const FN_PATH_LABELS = {
     clicked_filled: 'Preencheram ao menos um campo',
     clicked_empty: 'Deixaram todos os campos em branco',
     clicked_unknown: 'Preenchimento não medido (cliques antes de 21/11, 12h)',
   };
 
-  // "Por qual caminho" é detalhamento do degrau "Chegaram à tela de revelação"
-  // (não é uma etapa do funil): fica recolhido e abre pelo botão "?" do degrau.
-  // O estado sobrevive a um novo render (ex.: recarregar as métricas).
+
   let fnPathsOpen = false;
   const fnHelpBtn = () =>
     '<button type="button" class="fn-help' + (fnPathsOpen ? ' open' : '') + '"' +
@@ -227,16 +210,12 @@
     const revealed = paths.reduce((t, k) => t + n(k), 0);
     const rated = n('feedback');
 
-    // Um degrau: título, número, barra e % sobre o degrau de cima.
-    // 'extra': HTML opcional ao lado do rótulo (ex.: botão de detalhamento).
     const stepHead = (label, count, base, baseLabel, extra) =>
       '<div class="fn-top"><span class="fn-label">' + esc(label) + (extra || '') + '</span>' +
       '<span class="fn-count">' + count + '</span></div>' +
       '<span class="fn-bar"><span class="fn-fill" style="width:' + (base == null ? 100 : pctOf(count, base)) + '%"></span></span>' +
       (base == null ? '' : '<span class="fn-step">' + pctOf(count, base) + '% ' + esc(baseLabel) + '</span>');
 
-    // Caminhos até a revelação: linhas compactas. % do 1º nível sobre quem viu
-    // a revelação; % das sub-linhas de "Caíram" sobre quem caiu.
     const pathRow = (label, c, base, cls) =>
       '<div class="fn-path' + (cls ? ' ' + cls : '') + '">' +
       '<span class="fn-path-lbl">' + label + '</span>' +
@@ -254,8 +233,6 @@
         fellKeys.map((k) => pathRow(esc(FN_PATH_LABELS[k] || by[k].label), n(k), fell, 'fn-path-sub')).join('') +
         '</div></div>';
     }
-    // Em paralelo a "Caíram no phishing": quem chegou à revelação porque o
-    // cronômetro zerou. Escopo = quem chegou à revelação (não o total de acessos).
     if (by.timeout) {
       pathRows += pathRow('<strong>Não caíram no phishing</strong><span class="fn-path-hint">Esperaram o cronômetro zerar</span>', n('timeout'), revealed, 'fn-path-main');
     }
@@ -278,10 +255,6 @@
       '</div>';
   }
 
-  // ---- Acertos com os dados do PDF (só nº de campos corretos, 0..4) ----
-  // Visual propositalmente diferente do card de avaliações: frase-resumo em
-  // vez de número grande, e 4 marcadores por linha (campo certo/errado) em vez
-  // de barras de distribuição.
   function renderFill(fill) {
     const box = el('fill');
     if (!box) return;
@@ -300,9 +273,7 @@
       'acertaram os 4 campos <span class="pdf-lead-pct">(' + pct + '%)</span></p>' +
       '<p class="pdf-sub">Média de ' + avg + ' de 4 campos certos por envio (' + avgPct + '%)</p>';
 
-    // A medição começou depois de o site já estar no ar: envios anteriores
-    // ficam com correct_count nulo e não há como recuperá-los (o conteúdo
-    // digitado nunca sai do navegador).
+
     const total = Number(fill.total) || 0;
     const semMedicao = total - answered;
     if (semMedicao > 0) {
@@ -311,7 +282,6 @@
         'os ' + semMedicao + ' anteriores a 20/11 (~21h) não têm o dado.</p>';
     }
 
-    // Uma linha por nº de acertos: 4 marcadores (certo/errado) e quantos envios.
     const dist = fill.distribution || {};
     html += '<div class="pdf-rows" role="list">';
     for (let n = 4; n >= 0; n--) {
@@ -331,7 +301,6 @@
     box.innerHTML = html;
   }
 
-  // ---- Avaliações da simulação ----
   function renderFeedback(fb) {
     const box = el('feedback');
     if (!box) return;
@@ -341,7 +310,6 @@
     }
     const starsOf = (n) => '★★★★★☆☆☆☆☆'.slice(5 - n, 10 - n);
 
-    // Resumo: média + total.
     let html =
       '<div class="fb-summary">' +
       '<span class="fb-avg">' + fb.avg.toFixed(1) + '</span>' +
@@ -349,7 +317,6 @@
       '<span class="fb-total">' + fb.count + (fb.count === 1 ? ' avaliação' : ' avaliações') + '</span>' +
       '</div>';
 
-    // Quem avaliou caiu na isca ou não? (quando houver o dado).
     const bp = fb.byPath || {};
     const fell = Number(bp.form || 0);
     const safe = Number(bp.timeout || 0);
@@ -361,7 +328,6 @@
         '</div>';
     }
 
-    // Distribuição 5★ -> 1★.
     const dist = fb.distribution || {};
     const maxBar = Math.max(1, ...[1, 2, 3, 4, 5].map((n) => Number(dist[n] || 0)));
     html += '<div class="fb-dist">';
@@ -377,7 +343,6 @@
     }
     html += '</div>';
 
-    // Comentários recentes.
     const comments = fb.comments || [];
     if (comments.length) {
       html += '<div class="fb-comments"><p class="fb-comments-title">Comentários</p>';
@@ -398,16 +363,12 @@
     box.innerHTML = html;
   }
 
-  // Selo do caminho: caiu na isca (form) ou não caiu (timeout); avaliações
-  // anteriores a esta coleta não têm caminho (sem selo).
   function fbPathTag(c) {
     if (c.path === 'form') return '<span class="fb-tag fb-tag-fell">Caiu no phishing</span>';
     if (c.path === 'timeout') return '<span class="fb-tag fb-tag-safe">Não caiu</span>';
     return '';
   }
 
-  // Data e hora da avaliação (created_at, gravado para toda avaliação) no fuso
-  // de quem abre o painel.
   function fbWhen(c) {
     if (!c.created_at) return '';
     const d = new Date(c.created_at);
@@ -418,8 +379,6 @@
     return '<span class="fb-comment-when">🕒 ' + esc(s) + '</span>';
   }
 
-  // Localidade de quem avaliou (cidade, estado, país); avaliações anteriores à
-  // coleta não têm localidade.
   function fbPlace(c) {
     const place = [c.city, c.region, c.country].filter(Boolean).join(', ');
     return place
@@ -427,7 +386,6 @@
       : '<span class="fb-comment-place is-empty">Localidade não registrada</span>';
   }
 
-  // ---- Localização dos acessos (País / Estado / Cidade) ----
   function locLabel(l, level) {
     if (level === 'country') return l.country || '—';
     if (level === 'state') return [l.region, l.country].filter(Boolean).join(' · ') || '—';

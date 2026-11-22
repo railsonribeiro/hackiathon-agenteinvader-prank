@@ -8,8 +8,7 @@
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/dashboard.css" />
   <script src="/vendor/supabase.js"></script>
-  <!-- Cloudflare Turnstile (CAPTCHA do login). Render explícito: o widget só é
-       desenhado quando há Site key (via /api/config). -->
+
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onloadTurnstileCallback" async defer></script>
 </head>
 <body class="scene">
@@ -20,7 +19,6 @@
       <p class="muted">Acessos à demonstração de conscientização &bull; <a id="simLink" href="/" target="_blank" rel="noopener">ver a página</a></p>
     </header>
 
-    <!-- Login (e-mail + senha via Supabase) -->
     <section id="login" class="panel login-card hidden">
       <h2>Entrar</h2>
       <form id="loginForm">
@@ -36,17 +34,12 @@
       </form>
     </section>
 
-    <!-- Conteúdo autenticado -->
     <div id="content" class="hidden">
       <div class="authbar">
         <span id="whoami" class="muted"></span>
         <button id="logout" class="linkbtn">Sair</button>
       </div>
 
-      <!-- Regra de negócio: caiu = clicou em Confirmar antes de o tempo
-           esgotar (preenchendo ou não). Não há card de "não caíram": quem só
-           abriu e saiu também não caiu, e os acessos não são deduplicados por
-           IP, então não dá para contar essas pessoas com segurança. -->
       <section class="stats stats-2">
         <div class="stat"><div class="num" id="accesses">&mdash;</div><div class="lbl">Acessos à página</div></div>
         <div class="stat"><div class="num" id="submissions">&mdash;</div><div class="lbl">Caíram na simulação de phishing</div><div class="stat-desc">Clicaram em <em>Confirmar</em> antes de o tempo esgotar, com ou sem preencher os campos.</div></div>
