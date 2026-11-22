@@ -65,8 +65,7 @@
     el('loginForm').addEventListener('submit', onLogin);
     el('logout').addEventListener('click', onLogout);
 
-    const reportBtn = el('reportBtn');
-    if (reportBtn) reportBtn.addEventListener('click', () => generateReport(lastData));
+    wireReport();
 
     const toggle = el('locToggle');
     if (toggle) {
@@ -510,82 +509,145 @@
     return h || 'siscritico.agenteinvader.com.br';
   }
 
-  function buildReportHTML(data) {
+  function buildReportHTML(data, opts) {
     const d = data || {};
+    const o = Object.assign({
+      resumo: true, jornada: true, acertos: true, acertosDist: true,
+      avaliacoes: true, comentarios: true, localizacao: true,
+      locLevels: ['country', 'state', 'city'],
+    }, opts || {});
     const accesses = Number(d.accesses || 0);
     const submissions = Number(d.submissions || 0);
     const pctOf = (a, b) => (b > 0 ? Math.round((a / b) * 100) : 0);
     const fellPct = pctOf(submissions, accesses);
 
-    // Jornada (funil)
-    const by = {};
-    (d.funnel || []).forEach((s) => { by[s.key] = Number(s.count) || 0; });
-    const opened = by.open || 0;
-    const revealed = FN_PATHS.reduce((t, k) => t + (by[k] || 0), 0);
-    const fell = FN_FELL.reduce((t, k) => t + (by[k] || 0), 0);
-    const timeout = by.timeout || 0;
-    const rated = by.feedback || 0;
+    const sections = [];
 
-    let journeyRows =
-      row2('Acessos à página', opened, '') +
-      row2('Chegaram à revelação', revealed, pctOf(revealed, opened) + '% dos acessos') +
-      row2('&nbsp;&nbsp;↳ Caíram no phishing (clicaram em Confirmar)', fell, pctOf(fell, revealed) + '% da revelação');
-    FN_FELL.filter((k) => by[k] != null).forEach((k) => {
-      journeyRows += row2('&nbsp;&nbsp;&nbsp;&nbsp;' + esc(FN_PATH_LABELS[k] || k), by[k] || 0, pctOf(by[k] || 0, fell) + '% de quem caiu');
-    });
-    journeyRows += row2('&nbsp;&nbsp;↳ Não caíram (esperaram o cronômetro)', timeout, pctOf(timeout, revealed) + '% da revelação');
-    journeyRows += row2('Avaliaram a simulação', rated, pctOf(rated, revealed) + '% da revelação');
+    // Resumo
+    if (o.resumo) {
+      sections.push(
+        '<section><h2>Resumo</h2><table class="rt"><tbody>' +
+        row2('Acessos à página', accesses, '') +
+        row2('Caíram no phishing', submissions, fellPct + '% dos acessos') +
+        '</tbody></table></section>'
+      );
+    }
+
+    // Jornada (funil)
+    if (o.jornada) {
+      const by = {};
+      (d.funnel || []).forEach((s) => { by[s.key] = Number(s.count) || 0; });
+      const opened = by.open || 0;
+      const revealed = FN_PATHS.reduce((t, k) => t + (by[k] || 0), 0);
+      const fell = FN_FELL.reduce((t, k) => t + (by[k] || 0), 0);
+      const timeout = by.timeout || 0;
+      const rated = by.feedback || 0;
+      let journeyRows =
+        row2('Acessos à página', opened, '') +
+        row2('Chegaram à revelação', revealed, pctOf(revealed, opened) + '% dos acessos') +
+        row2('&nbsp;&nbsp;↳ Caíram no phishing (clicaram em Confirmar)', fell, pctOf(fell, revealed) + '% da revelação');
+      FN_FELL.filter((k) => by[k] != null).forEach((k) => {
+        journeyRows += row2('&nbsp;&nbsp;&nbsp;&nbsp;' + esc(FN_PATH_LABELS[k] || k), by[k] || 0, pctOf(by[k] || 0, fell) + '% de quem caiu');
+      });
+      journeyRows += row2('&nbsp;&nbsp;↳ Não caíram (esperaram o cronômetro)', timeout, pctOf(timeout, revealed) + '% da revelação');
+      journeyRows += row2('Avaliaram a simulação', rated, pctOf(rated, revealed) + '% da revelação');
+      sections.push(
+        '<section><h2>Jornada na simulação</h2><table class="rt"><thead><tr><th>Etapa</th><th class="n">Nº</th><th class="n">%</th></tr></thead><tbody>' +
+        journeyRows + '</tbody></table></section>'
+      );
+    }
 
     // Acertos com o PDF
-    const fill = d.fill || {};
-    const answered = Number(fill.answered || 0);
-    const allOk = Number(fill.allOk || 0);
-    const avg = (Number(fill.avg || 0)).toFixed(1).replace('.', ',');
-    const dist = fill.distribution || {};
-    let fillRows = '';
-    for (let n = 4; n >= 0; n--) {
-      const c = Number(dist[n] || 0);
-      fillRows += row2((n === 1 ? '1 campo certo' : n + ' campos certos') + (n === 0 ? ' (errou todos ou em branco)' : ''), c, pctOf(c, answered) + '%');
+    if (o.acertos) {
+      const fill = d.fill || {};
+      const answered = Number(fill.answered || 0);
+      const allOk = Number(fill.allOk || 0);
+      const avg = (Number(fill.avg || 0)).toFixed(1).replace('.', ',');
+      const dist = fill.distribution || {};
+      const fillSummary = answered
+        ? '<p>' + allOk + ' de ' + answered + ' envios medidos acertaram os 4 campos (' + pctOf(allOk, answered) + '%). Média de ' + avg + ' de 4 campos certos por envio.</p>'
+        : '<p class="muted">Nenhum envio com medição.</p>';
+      let distTable = '';
+      if (o.acertosDist && answered) {
+        let fillRows = '';
+        for (let n = 4; n >= 0; n--) {
+          const c = Number(dist[n] || 0);
+          fillRows += row2((n === 1 ? '1 campo certo' : n + ' campos certos') + (n === 0 ? ' (errou todos ou em branco)' : ''), c, pctOf(c, answered) + '%');
+        }
+        distTable = '<table class="rt"><thead><tr><th>Faixa</th><th class="n">Envios</th><th class="n">%</th></tr></thead><tbody>' + fillRows + '</tbody></table>';
+      }
+      sections.push('<section><h2>Acertos com os dados do PDF</h2>' + fillSummary + distTable + '</section>');
     }
-    const fillSummary = answered
-      ? '<p>' + allOk + ' de ' + answered + ' envios medidos acertaram os 4 campos (' + pctOf(allOk, answered) + '%). Média de ' + avg + ' de 4 campos certos por envio.</p>'
-      : '<p class="muted">Nenhum envio com medição.</p>';
 
     // Avaliações
-    const fb = d.feedback || {};
-    const fbCount = Number(fb.count || 0);
-    const fbAvg = (Number(fb.avg || 0)).toFixed(1);
-    const fbDist = fb.distribution || {};
-    let fbDistRows = '';
-    for (let n = 5; n >= 1; n--) fbDistRows += row2(n + ' estrela' + (n === 1 ? '' : 's'), Number(fbDist[n] || 0), pctOf(Number(fbDist[n] || 0), fbCount) + '%');
-    const bp = fb.byPath || {};
-    const fbPathRows =
-      row2('De quem caiu no phishing', Number(bp.form || 0), '') +
-      row2('De quem não caiu', Number(bp.timeout || 0), '') +
-      (Number(bp.unknown || 0) ? row2('Caminho não identificado', Number(bp.unknown || 0), '') : '');
-    const comments = fb.comments || [];
-    let commentRows = '';
-    if (comments.length) {
-      commentRows = comments.map((c) => {
-        const stars = '★'.repeat(c.rating) + '☆'.repeat(Math.max(0, 5 - c.rating));
-        const tag = c.path === 'form' ? 'Caiu' : (c.path === 'timeout' ? 'Não caiu' : '—');
-        const place = [c.city, c.region, c.country].filter(Boolean).join(', ') || 'Localidade não registrada';
-        return '<tr><td class="c-stars">' + stars + '</td><td class="c-tag">' + esc(tag) + '</td>' +
-          '<td class="c-text">' + esc(c.comment) + '</td>' +
-          '<td class="c-meta">' + esc(place) + '<br>' + esc(reportWhen(c.created_at)) + '</td></tr>';
-      }).join('');
+    if (o.avaliacoes) {
+      const fb = d.feedback || {};
+      const fbCount = Number(fb.count || 0);
+      const fbAvg = (Number(fb.avg || 0)).toFixed(1);
+      const fbDist = fb.distribution || {};
+      let fbDistRows = '';
+      for (let n = 5; n >= 1; n--) fbDistRows += row2(n + ' estrela' + (n === 1 ? '' : 's'), Number(fbDist[n] || 0), pctOf(Number(fbDist[n] || 0), fbCount) + '%');
+      const bp = fb.byPath || {};
+      const fbPathRows =
+        row2('De quem caiu no phishing', Number(bp.form || 0), '') +
+        row2('De quem não caiu', Number(bp.timeout || 0), '') +
+        (Number(bp.unknown || 0) ? row2('Caminho não identificado', Number(bp.unknown || 0), '') : '');
+      let commentsBlock = '';
+      if (o.comentarios) {
+        const comments = fb.comments || [];
+        if (comments.length) {
+          const commentRows = comments.map((c) => {
+            const stars = '★'.repeat(c.rating) + '☆'.repeat(Math.max(0, 5 - c.rating));
+            const tag = c.path === 'form' ? 'Caiu' : (c.path === 'timeout' ? 'Não caiu' : '—');
+            const place = [c.city, c.region, c.country].filter(Boolean).join(', ') || 'Localidade não registrada';
+            return '<tr><td class="c-stars">' + stars + '</td><td class="c-tag">' + esc(tag) + '</td>' +
+              '<td class="c-text">' + esc(c.comment) + '</td>' +
+              '<td class="c-meta">' + esc(place) + '<br>' + esc(reportWhen(c.created_at)) + '</td></tr>';
+          }).join('');
+          commentsBlock = '<h3>Comentários (' + comments.length + ')</h3><table class="rt ct"><thead><tr><th>Nota</th><th>Caminho</th><th>Comentário</th><th>Local / data</th></tr></thead><tbody>' + commentRows + '</tbody></table>';
+        } else {
+          commentsBlock = '<p class="muted">Sem comentários.</p>';
+        }
+      }
+      sections.push(
+        '<section><h2>Avaliações da simulação</h2>' +
+        '<p>Nota média: <strong>' + fbAvg + '</strong> &bull; ' + fbCount + (fbCount === 1 ? ' avaliação' : ' avaliações') + '</p>' +
+        '<table class="rt"><thead><tr><th>Distribuição</th><th class="n">Nº</th><th class="n">%</th></tr></thead><tbody>' + fbDistRows + '</tbody></table>' +
+        '<table class="rt"><thead><tr><th>Origem</th><th class="n">Nº</th><th class="n"></th></tr></thead><tbody>' + fbPathRows + '</tbody></table>' +
+        commentsBlock +
+        '</section>'
+      );
     }
 
-    // Localização (três níveis)
-    const loc = d.locations || {};
-    const locTable = (rows, label) => {
-      if (!rows || !rows.length) return '<p class="muted">Sem dados.</p>';
-      const body = rows.map((l) => {
-        const place = [l.city, l.region, l.country].filter(Boolean).join(', ') || l.country || '—';
-        return '<tr><td>' + esc(place) + '</td><td class="n">' + Number(l.count || 0) + '</td></tr>';
-      }).join('');
-      return '<table class="rt"><thead><tr><th>' + label + '</th><th class="n">Acessos</th></tr></thead><tbody>' + body + '</tbody></table>';
-    };
+    // Localização (níveis escolhidos)
+    if (o.localizacao) {
+      const loc = d.locations || {};
+      const locTable = (rows, label) => {
+        if (!rows || !rows.length) return '<p class="muted">Sem dados.</p>';
+        const body = rows.map((l) => {
+          const place = [l.city, l.region, l.country].filter(Boolean).join(', ') || l.country || '—';
+          return '<tr><td>' + esc(place) + '</td><td class="n">' + Number(l.count || 0) + '</td></tr>';
+        }).join('');
+        return '<table class="rt"><thead><tr><th>' + label + '</th><th class="n">Acessos</th></tr></thead><tbody>' + body + '</tbody></table>';
+      };
+      const levelMeta = {
+        country: ['Por país', 'País', loc.country],
+        state: ['Por estado', 'Estado', loc.state],
+        city: ['Por cidade', 'Cidade', loc.city],
+      };
+      let locBody = '';
+      (o.locLevels || []).forEach((lvl) => {
+        const m = levelMeta[lvl];
+        if (m) locBody += '<h3>' + m[0] + '</h3>' + locTable(m[2], m[1]);
+      });
+      if (locBody) {
+        sections.push('<section><h2>Localização dos acessos</h2>' + locBody + '</section>');
+      }
+    }
+
+    if (!sections.length) {
+      sections.push('<section><p class="muted">Nenhuma seção selecionada.</p></section>');
+    }
 
     return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
       '<title>Relatório — Simulação de conscientização</title>' +
@@ -593,34 +655,7 @@
       '<header class="rp-head"><h1>Relatório — Simulação de conscientização (Phishing)</h1>' +
       '<p class="rp-sub">' + esc(reportOrigin()) + ' &bull; gerado em ' + esc(reportWhen(new Date().toISOString())) + '</p>' +
       '<p class="rp-note">Dados agregados. Nenhum dado pessoal, IP ou conteúdo digitado é coletado.</p></header>' +
-
-      '<section><h2>Resumo</h2><table class="rt"><tbody>' +
-      row2('Acessos à página', accesses, '') +
-      row2('Caíram no phishing', submissions, fellPct + '% dos acessos') +
-      '</tbody></table></section>' +
-
-      '<section><h2>Jornada na simulação</h2><table class="rt"><thead><tr><th>Etapa</th><th class="n">Nº</th><th class="n">%</th></tr></thead><tbody>' +
-      journeyRows + '</tbody></table></section>' +
-
-      '<section><h2>Acertos com os dados do PDF</h2>' + fillSummary +
-      '<table class="rt"><thead><tr><th>Faixa</th><th class="n">Envios</th><th class="n">%</th></tr></thead><tbody>' +
-      fillRows + '</tbody></table></section>' +
-
-      '<section><h2>Avaliações da simulação</h2>' +
-      '<p>Nota média: <strong>' + fbAvg + '</strong> &bull; ' + fbCount + (fbCount === 1 ? ' avaliação' : ' avaliações') + '</p>' +
-      '<table class="rt"><thead><tr><th>Distribuição</th><th class="n">Nº</th><th class="n">%</th></tr></thead><tbody>' + fbDistRows + '</tbody></table>' +
-      '<table class="rt"><thead><tr><th>Origem</th><th class="n">Nº</th><th class="n"></th></tr></thead><tbody>' + fbPathRows + '</tbody></table>' +
-      (commentRows
-        ? '<h3>Comentários (' + comments.length + ')</h3><table class="rt ct"><thead><tr><th>Nota</th><th>Caminho</th><th>Comentário</th><th>Local / data</th></tr></thead><tbody>' + commentRows + '</tbody></table>'
-        : '<p class="muted">Sem comentários.</p>') +
-      '</section>' +
-
-      '<section><h2>Localização dos acessos</h2>' +
-      '<h3>Por país</h3>' + locTable(loc.country, 'País') +
-      '<h3>Por estado</h3>' + locTable(loc.state, 'Estado') +
-      '<h3>Por cidade</h3>' + locTable(loc.city, 'Cidade') +
-      '</section>' +
-
+      sections.join('') +
       '<footer class="rp-foot">Simulação de conscientização de segurança &bull; ' + esc(reportOrigin()) + '</footer>' +
       '<script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>' +
       '</body></html>';
@@ -646,7 +681,75 @@
     '.rp-foot{margin-top:28px;padding-top:10px;border-top:1px solid #ddd;color:#999;font-size:11px;}' +
     '@media print{body{margin:0;}h2{break-after:avoid;}tr{break-inside:avoid;}}';
 
-  function generateReport(data) {
+  function toggleReportPanel(open) {
+    const panel = el('reportOptions');
+    const btn = el('reportBtn');
+    if (!panel) return;
+    const show = open == null ? panel.hidden : open;
+    panel.hidden = !show;
+    if (btn) btn.setAttribute('aria-expanded', String(show));
+  }
+
+  // Dependências entre as opções: sub-itens só fazem sentido com o pai marcado.
+  function syncReportDeps() {
+    const panel = el('reportOptions');
+    if (!panel) return;
+    const opt = (k) => panel.querySelector('[data-opt="' + k + '"]');
+    const setDep = (parentKey, childKey) => {
+      const p = opt(parentKey);
+      const c = opt(childKey);
+      if (!p || !c) return;
+      c.disabled = !p.checked;
+      const lbl = c.closest('.ro-item');
+      if (lbl) lbl.classList.toggle('ro-off', !p.checked);
+    };
+    setDep('acertos', 'acertosDist');
+    setDep('avaliacoes', 'comentarios');
+    const locOn = opt('localizacao');
+    const locBox = panel.querySelector('.ro-loc');
+    if (locOn && locBox) {
+      locBox.classList.toggle('ro-off', !locOn.checked);
+      locBox.querySelectorAll('[data-loc]').forEach((c) => { c.disabled = !locOn.checked; });
+    }
+  }
+
+  function readReportOptions() {
+    const panel = el('reportOptions');
+    const get = (k) => {
+      const c = panel && panel.querySelector('[data-opt="' + k + '"]');
+      return c ? c.checked : true;
+    };
+    const locLevels = [];
+    if (panel) {
+      panel.querySelectorAll('[data-loc]').forEach((c) => { if (c.checked) locLevels.push(c.dataset.loc); });
+    }
+    return {
+      resumo: get('resumo'),
+      jornada: get('jornada'),
+      acertos: get('acertos'),
+      acertosDist: get('acertosDist'),
+      avaliacoes: get('avaliacoes'),
+      comentarios: get('comentarios'),
+      localizacao: get('localizacao'),
+      locLevels: locLevels.length ? locLevels : ['country', 'state', 'city'],
+    };
+  }
+
+  function wireReport() {
+    const btn = el('reportBtn');
+    const panel = el('reportOptions');
+    const gen = el('reportGen');
+    const cancel = el('reportCancel');
+    if (btn) btn.addEventListener('click', () => { toggleReportPanel(); syncReportDeps(); });
+    if (cancel) cancel.addEventListener('click', () => toggleReportPanel(false));
+    if (panel) panel.addEventListener('change', syncReportDeps);
+    if (gen) gen.addEventListener('click', () => {
+      generateReport(lastData, readReportOptions());
+      toggleReportPanel(false);
+    });
+  }
+
+  function generateReport(data, opts) {
     if (!data) return;
     const w = window.open('', '_blank');
     if (!w) {
@@ -654,7 +757,7 @@
       return;
     }
     w.document.open();
-    w.document.write(buildReportHTML(data));
+    w.document.write(buildReportHTML(data, opts));
     w.document.close();
     w.focus();
   }
