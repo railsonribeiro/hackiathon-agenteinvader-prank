@@ -177,6 +177,39 @@
 .fn-path-sub .fn-path-num { font-size: 12px; font-weight: 500; }
 .fn-path-sub .fn-path-bar { height: 4px; }
 
+.report-btn { display: inline-flex; align-items: center; gap: 5px; }
+.report-btn:not(:disabled):hover { color: #fff; border-color: var(--red); }
+.report-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* Expandir detalhes dos acertos com o PDF */
+.pdf-toggle {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 14px;
+  padding: 5px 12px; border-radius: 999px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--muted); font: inherit; font-size: 12px;
+}
+.pdf-toggle:hover, .pdf-toggle:focus-visible { color: #fff; border-color: var(--red); outline: none; }
+.pdf-toggle.open { color: #fff; border-color: var(--red); background: rgba(226, 32, 59, 0.15); }
+.pdf-toggle-chev { font-size: 9px; transition: transform 0.15s ease; }
+.pdf-toggle.open .pdf-toggle-chev { transform: rotate(180deg); }
+.pdf-detail[hidden] { display: none; }
+.pdf-detail { margin-top: 10px; }
+.pdf-detail-note { color: var(--muted); font-size: 11.5px; margin: 0 0 2px; }
+
+/* Paginação dos comentários */
+.fb-comments-count { color: var(--muted); font-weight: 400; }
+.fb-pager {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.fb-page-btn {
+  background: none; border: 1px solid rgba(255, 255, 255, 0.15); color: var(--muted);
+  border-radius: 8px; padding: 5px 12px; font: inherit; font-size: 12px; cursor: pointer;
+}
+.fb-page-btn:not(:disabled):hover { color: #fff; border-color: var(--red); }
+.fb-page-btn:disabled { opacity: 0.4; cursor: default; }
+.fb-page-info { color: var(--muted); font-size: 12px; white-space: nowrap; }
+
 .note { color: var(--muted); font-size: 13px; text-align: center; margin-top: 20px; }
 @media (max-width: 520px) {
   .stats { grid-template-columns: 1fr; }

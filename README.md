@@ -1,5 +1,14 @@
 # siscritico.agenteinvader.com.br — Demonstração de conscientização de segurança
 
+> ⚠️ **Uso ético — leia antes de reutilizar.** Este é um projeto de
+> conscientização, publicado **apenas para fins educativos**. A página foi
+> deliberadamente construída para **não coletar o conteúdo** dos campos do
+> formulário (veja `apps/front-end/api/submit.js`: guarda só contadores
+> agregados, nunca o que é digitado). Reaproveitar este código para capturar
+> dados reais de pessoas, se passar por uma organização ou aplicar golpes é
+> abuso — e, dependendo do caso, crime. Se usar como referência, **mantenha a
+> tela de revelação** e o aviso de que é uma simulação.
+
 Página simples que demonstra, de forma segura, **o risco de divulgar links que apontam para domínios não registrados**.
 
 Quando alguém abre a página, ela mostra por alguns segundos uma tela sombria de "sistema restrito" e, em seguida, **revela a lição**: aquele domínio estava livre e qualquer pessoa — inclusive um golpista — poderia ter registrado e colocado no ar uma página falsa para roubar dados.

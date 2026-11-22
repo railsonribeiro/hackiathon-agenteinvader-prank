@@ -4,6 +4,10 @@
   let accessToken = null;
   let locData = { country: [], state: [], city: [] };
   let locLevel = 'state';
+  let lastData = null;
+  let fbCommentPage = 0;
+  let pdfDetailOpen = false;
+  const FB_PAGE_SIZE = 8;
 
   let siteKey = '';
   let captchaToken = '';
@@ -60,6 +64,9 @@
 
     el('loginForm').addEventListener('submit', onLogin);
     el('logout').addEventListener('click', onLogout);
+
+    const reportBtn = el('reportBtn');
+    if (reportBtn) reportBtn.addEventListener('click', () => generateReport(lastData));
 
     const toggle = el('locToggle');
     if (toggle) {
@@ -134,10 +141,12 @@
         return r.json();
       })
       .then((data) => {
+        lastData = data;
         el('accesses').textContent = data.accesses || 0;
         el('submissions').textContent = data.submissions || 0;
         renderFunnel(data.funnel || []);
         renderFill(data.fill || null);
+        fbCommentPage = 0;
         renderFeedback(data.feedback || null);
         const loc = data.locations || {};
         locData = {
@@ -146,6 +155,8 @@
           city: loc.city || [],
         };
         renderLocations();
+        const reportBtn = el('reportBtn');
+        if (reportBtn) reportBtn.disabled = false;
       })
       .catch((err) => {
         el('note').textContent =
@@ -255,9 +266,46 @@
       '</div>';
   }
 
+  // Linhas da distribuição de acertos (0..4 campos certos) — reusadas no painel
+  // e no relatório em PDF.
+  function fillDistRows(fill) {
+    const dist = (fill && fill.distribution) || {};
+    let html = '<div class="pdf-rows" role="list">';
+    for (let n = 4; n >= 0; n--) {
+      const c = Number(dist[n] || 0);
+      let dots = '';
+      for (let i = 0; i < 4; i++) dots += '<span class="pdf-dot' + (i < n ? ' ok' : '') + '"></span>';
+      html +=
+        '<div class="pdf-row' + (c ? '' : ' empty') + '" role="listitem">' +
+        '<span class="pdf-dots" aria-hidden="true">' + dots + '</span>' +
+        '<span class="pdf-lbl">' + (n === 1 ? '1 campo certo' : n + ' campos certos') +
+        (n === 0 ? '<span class="pdf-hint">errou todos ou deixou em branco</span>' : '') + '</span>' +
+        '<span class="pdf-count">' + c + (c === 1 ? ' envio' : ' envios') + '</span>' +
+        '</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function bindFillToggle(box) {
+    if (box.dataset.toggleBound) return;
+    box.dataset.toggleBound = '1';
+    box.addEventListener('click', (e) => {
+      const btn = e.target.closest('.pdf-toggle');
+      if (!btn) return;
+      const panel = el('pdfDetail');
+      if (!panel) return;
+      pdfDetailOpen = !pdfDetailOpen;
+      panel.hidden = !pdfDetailOpen;
+      btn.classList.toggle('open', pdfDetailOpen);
+      btn.setAttribute('aria-expanded', String(pdfDetailOpen));
+    });
+  }
+
   function renderFill(fill) {
     const box = el('fill');
     if (!box) return;
+    bindFillToggle(box);
     const answered = Number(fill && fill.answered) || 0;
     if (!fill || !answered) {
       box.innerHTML = '<p class="muted">Nenhum envio com medição ainda.</p>';
@@ -282,28 +330,38 @@
         'os ' + semMedicao + ' anteriores a 20/11 (~21h) não têm o dado.</p>';
     }
 
-    const dist = fill.distribution || {};
-    html += '<div class="pdf-rows" role="list">';
-    for (let n = 4; n >= 0; n--) {
-      const c = Number(dist[n] || 0);
-      let dots = '';
-      for (let i = 0; i < 4; i++) dots += '<span class="pdf-dot' + (i < n ? ' ok' : '') + '"></span>';
-      html +=
-        '<div class="pdf-row' + (c ? '' : ' empty') + '" role="listitem">' +
-        '<span class="pdf-dots" aria-hidden="true">' + dots + '</span>' +
-        '<span class="pdf-lbl">' + (n === 1 ? '1 campo certo' : n + ' campos certos') +
-        (n === 0 ? '<span class="pdf-hint">errou todos ou deixou em branco</span>' : '') + '</span>' +
-        '<span class="pdf-count">' + c + (c === 1 ? ' envio' : ' envios') + '</span>' +
-        '</div>';
-    }
-    html += '</div>';
+    html +=
+      '<button type="button" class="pdf-toggle' + (pdfDetailOpen ? ' open' : '') + '"' +
+      ' aria-expanded="' + pdfDetailOpen + '" aria-controls="pdfDetail">' +
+      '<span class="pdf-toggle-lbl">Ver acertos por faixa</span>' +
+      '<span class="pdf-toggle-chev" aria-hidden="true">&#9662;</span>' +
+      '</button>' +
+      '<div class="pdf-detail" id="pdfDetail"' + (pdfDetailOpen ? '' : ' hidden') + '>' +
+      '<p class="pdf-detail-note">Quantos envios acertaram cada quantidade de campos (0 a 4).</p>' +
+      fillDistRows(fill) +
+      '</div>';
 
     box.innerHTML = html;
+  }
+
+  function bindFeedbackPager(box) {
+    if (box.dataset.pagerBound) return;
+    box.dataset.pagerBound = '1';
+    box.addEventListener('click', (e) => {
+      const btn = e.target.closest('.fb-page-btn');
+      if (!btn || btn.disabled) return;
+      const comments = (lastData && lastData.feedback && lastData.feedback.comments) || [];
+      const pages = Math.max(1, Math.ceil(comments.length / FB_PAGE_SIZE));
+      const dir = btn.dataset.dir === 'next' ? 1 : -1;
+      fbCommentPage = Math.min(pages - 1, Math.max(0, fbCommentPage + dir));
+      renderFeedback(lastData && lastData.feedback);
+    });
   }
 
   function renderFeedback(fb) {
     const box = el('feedback');
     if (!box) return;
+    bindFeedbackPager(box);
     if (!fb || !fb.count) {
       box.innerHTML = '<p class="muted">Nenhuma avaliação ainda.</p>';
       return;
@@ -345,8 +403,14 @@
 
     const comments = fb.comments || [];
     if (comments.length) {
-      html += '<div class="fb-comments"><p class="fb-comments-title">Comentários</p>';
-      html += comments
+      const pages = Math.max(1, Math.ceil(comments.length / FB_PAGE_SIZE));
+      if (fbCommentPage > pages - 1) fbCommentPage = pages - 1;
+      if (fbCommentPage < 0) fbCommentPage = 0;
+      const start = fbCommentPage * FB_PAGE_SIZE;
+      const pageItems = comments.slice(start, start + FB_PAGE_SIZE);
+
+      html += '<div class="fb-comments"><p class="fb-comments-title">Comentários <span class="fb-comments-count">(' + comments.length + ')</span></p>';
+      html += pageItems
         .map((c) => (
           '<div class="fb-comment">' +
           '<span class="fb-comment-stars">' + starsOf(c.rating) + '</span>' +
@@ -357,6 +421,17 @@
           '</div>'
         ))
         .join('');
+
+      if (pages > 1) {
+        const from = start + 1;
+        const to = Math.min(start + FB_PAGE_SIZE, comments.length);
+        html +=
+          '<div class="fb-pager">' +
+          '<button type="button" class="fb-page-btn" data-dir="prev"' + (fbCommentPage === 0 ? ' disabled' : '') + ' aria-label="Página anterior">&#8249; Anteriores</button>' +
+          '<span class="fb-page-info">' + from + '&ndash;' + to + ' de ' + comments.length + '</span>' +
+          '<button type="button" class="fb-page-btn" data-dir="next"' + (fbCommentPage >= pages - 1 ? ' disabled' : '') + ' aria-label="Próxima página">Próximos &#8250;</button>' +
+          '</div>';
+      }
       html += '</div>';
     }
 
@@ -414,6 +489,174 @@
         );
       })
       .join('');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Relatório em PDF: monta uma página de impressão limpa com TODOS os dados do
+  // painel e dispara o diálogo de impressão (Salvar como PDF). Nada sai do
+  // navegador — é só uma reformatação do que já está carregado.
+  // ---------------------------------------------------------------------------
+  function reportWhen(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleString('pt-BR', {
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
+  }
+
+  function reportOrigin() {
+    const h = (location.hostname || '').replace(/^admin\./, 'siscritico.');
+    return h || 'siscritico.agenteinvader.com.br';
+  }
+
+  function buildReportHTML(data) {
+    const d = data || {};
+    const accesses = Number(d.accesses || 0);
+    const submissions = Number(d.submissions || 0);
+    const pctOf = (a, b) => (b > 0 ? Math.round((a / b) * 100) : 0);
+    const fellPct = pctOf(submissions, accesses);
+
+    // Jornada (funil)
+    const by = {};
+    (d.funnel || []).forEach((s) => { by[s.key] = Number(s.count) || 0; });
+    const opened = by.open || 0;
+    const revealed = FN_PATHS.reduce((t, k) => t + (by[k] || 0), 0);
+    const fell = FN_FELL.reduce((t, k) => t + (by[k] || 0), 0);
+    const timeout = by.timeout || 0;
+    const rated = by.feedback || 0;
+
+    let journeyRows =
+      row2('Acessos à página', opened, '') +
+      row2('Chegaram à revelação', revealed, pctOf(revealed, opened) + '% dos acessos') +
+      row2('&nbsp;&nbsp;↳ Caíram no phishing (clicaram em Confirmar)', fell, pctOf(fell, revealed) + '% da revelação');
+    FN_FELL.filter((k) => by[k] != null).forEach((k) => {
+      journeyRows += row2('&nbsp;&nbsp;&nbsp;&nbsp;' + esc(FN_PATH_LABELS[k] || k), by[k] || 0, pctOf(by[k] || 0, fell) + '% de quem caiu');
+    });
+    journeyRows += row2('&nbsp;&nbsp;↳ Não caíram (esperaram o cronômetro)', timeout, pctOf(timeout, revealed) + '% da revelação');
+    journeyRows += row2('Avaliaram a simulação', rated, pctOf(rated, revealed) + '% da revelação');
+
+    // Acertos com o PDF
+    const fill = d.fill || {};
+    const answered = Number(fill.answered || 0);
+    const allOk = Number(fill.allOk || 0);
+    const avg = (Number(fill.avg || 0)).toFixed(1).replace('.', ',');
+    const dist = fill.distribution || {};
+    let fillRows = '';
+    for (let n = 4; n >= 0; n--) {
+      const c = Number(dist[n] || 0);
+      fillRows += row2((n === 1 ? '1 campo certo' : n + ' campos certos') + (n === 0 ? ' (errou todos ou em branco)' : ''), c, pctOf(c, answered) + '%');
+    }
+    const fillSummary = answered
+      ? '<p>' + allOk + ' de ' + answered + ' envios medidos acertaram os 4 campos (' + pctOf(allOk, answered) + '%). Média de ' + avg + ' de 4 campos certos por envio.</p>'
+      : '<p class="muted">Nenhum envio com medição.</p>';
+
+    // Avaliações
+    const fb = d.feedback || {};
+    const fbCount = Number(fb.count || 0);
+    const fbAvg = (Number(fb.avg || 0)).toFixed(1);
+    const fbDist = fb.distribution || {};
+    let fbDistRows = '';
+    for (let n = 5; n >= 1; n--) fbDistRows += row2(n + ' estrela' + (n === 1 ? '' : 's'), Number(fbDist[n] || 0), pctOf(Number(fbDist[n] || 0), fbCount) + '%');
+    const bp = fb.byPath || {};
+    const fbPathRows =
+      row2('De quem caiu no phishing', Number(bp.form || 0), '') +
+      row2('De quem não caiu', Number(bp.timeout || 0), '') +
+      (Number(bp.unknown || 0) ? row2('Caminho não identificado', Number(bp.unknown || 0), '') : '');
+    const comments = fb.comments || [];
+    let commentRows = '';
+    if (comments.length) {
+      commentRows = comments.map((c) => {
+        const stars = '★'.repeat(c.rating) + '☆'.repeat(Math.max(0, 5 - c.rating));
+        const tag = c.path === 'form' ? 'Caiu' : (c.path === 'timeout' ? 'Não caiu' : '—');
+        const place = [c.city, c.region, c.country].filter(Boolean).join(', ') || 'Localidade não registrada';
+        return '<tr><td class="c-stars">' + stars + '</td><td class="c-tag">' + esc(tag) + '</td>' +
+          '<td class="c-text">' + esc(c.comment) + '</td>' +
+          '<td class="c-meta">' + esc(place) + '<br>' + esc(reportWhen(c.created_at)) + '</td></tr>';
+      }).join('');
+    }
+
+    // Localização (três níveis)
+    const loc = d.locations || {};
+    const locTable = (rows, label) => {
+      if (!rows || !rows.length) return '<p class="muted">Sem dados.</p>';
+      const body = rows.map((l) => {
+        const place = [l.city, l.region, l.country].filter(Boolean).join(', ') || l.country || '—';
+        return '<tr><td>' + esc(place) + '</td><td class="n">' + Number(l.count || 0) + '</td></tr>';
+      }).join('');
+      return '<table class="rt"><thead><tr><th>' + label + '</th><th class="n">Acessos</th></tr></thead><tbody>' + body + '</tbody></table>';
+    };
+
+    return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+      '<title>Relatório — Simulação de conscientização</title>' +
+      '<style>' + REPORT_CSS + '</style></head><body>' +
+      '<header class="rp-head"><h1>Relatório — Simulação de conscientização (Phishing)</h1>' +
+      '<p class="rp-sub">' + esc(reportOrigin()) + ' &bull; gerado em ' + esc(reportWhen(new Date().toISOString())) + '</p>' +
+      '<p class="rp-note">Dados agregados. Nenhum dado pessoal, IP ou conteúdo digitado é coletado.</p></header>' +
+
+      '<section><h2>Resumo</h2><table class="rt"><tbody>' +
+      row2('Acessos à página', accesses, '') +
+      row2('Caíram no phishing', submissions, fellPct + '% dos acessos') +
+      '</tbody></table></section>' +
+
+      '<section><h2>Jornada na simulação</h2><table class="rt"><thead><tr><th>Etapa</th><th class="n">Nº</th><th class="n">%</th></tr></thead><tbody>' +
+      journeyRows + '</tbody></table></section>' +
+
+      '<section><h2>Acertos com os dados do PDF</h2>' + fillSummary +
+      '<table class="rt"><thead><tr><th>Faixa</th><th class="n">Envios</th><th class="n">%</th></tr></thead><tbody>' +
+      fillRows + '</tbody></table></section>' +
+
+      '<section><h2>Avaliações da simulação</h2>' +
+      '<p>Nota média: <strong>' + fbAvg + '</strong> &bull; ' + fbCount + (fbCount === 1 ? ' avaliação' : ' avaliações') + '</p>' +
+      '<table class="rt"><thead><tr><th>Distribuição</th><th class="n">Nº</th><th class="n">%</th></tr></thead><tbody>' + fbDistRows + '</tbody></table>' +
+      '<table class="rt"><thead><tr><th>Origem</th><th class="n">Nº</th><th class="n"></th></tr></thead><tbody>' + fbPathRows + '</tbody></table>' +
+      (commentRows
+        ? '<h3>Comentários (' + comments.length + ')</h3><table class="rt ct"><thead><tr><th>Nota</th><th>Caminho</th><th>Comentário</th><th>Local / data</th></tr></thead><tbody>' + commentRows + '</tbody></table>'
+        : '<p class="muted">Sem comentários.</p>') +
+      '</section>' +
+
+      '<section><h2>Localização dos acessos</h2>' +
+      '<h3>Por país</h3>' + locTable(loc.country, 'País') +
+      '<h3>Por estado</h3>' + locTable(loc.state, 'Estado') +
+      '<h3>Por cidade</h3>' + locTable(loc.city, 'Cidade') +
+      '</section>' +
+
+      '<footer class="rp-foot">Simulação de conscientização de segurança &bull; ' + esc(reportOrigin()) + '</footer>' +
+      '<script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>' +
+      '</body></html>';
+  }
+
+  function row2(label, num, note) {
+    return '<tr><td>' + label + '</td><td class="n">' + num + '</td>' +
+      (arguments.length > 2 ? '<td class="n muted">' + esc(note || '') + '</td>' : '') + '</tr>';
+  }
+
+  const REPORT_CSS =
+    'body{font:14px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1a1a1a;background:#fff;margin:32px;}' +
+    'h1{font-size:20px;margin:0 0 4px;}h2{font-size:16px;margin:26px 0 8px;border-bottom:2px solid #e2203b;padding-bottom:4px;}' +
+    'h3{font-size:13px;margin:16px 0 6px;color:#444;}' +
+    '.rp-sub{color:#555;margin:0 0 2px;}.rp-note{color:#777;font-size:12px;margin:0;}' +
+    '.rp-head{border-bottom:1px solid #ddd;padding-bottom:12px;}' +
+    'table.rt{width:100%;border-collapse:collapse;margin:6px 0 10px;font-size:13px;}' +
+    '.rt th,.rt td{text-align:left;padding:6px 8px;border-bottom:1px solid #eee;vertical-align:top;}' +
+    '.rt th{color:#555;font-weight:600;border-bottom:1px solid #ccc;}' +
+    '.rt td.n,.rt th.n{text-align:right;white-space:nowrap;}' +
+    '.muted{color:#888;}' +
+    '.ct td.c-stars{color:#d49a00;white-space:nowrap;}.ct td.c-tag{white-space:nowrap;color:#555;}.ct td.c-meta{color:#777;font-size:11px;white-space:nowrap;}' +
+    '.rp-foot{margin-top:28px;padding-top:10px;border-top:1px solid #ddd;color:#999;font-size:11px;}' +
+    '@media print{body{margin:0;}h2{break-after:avoid;}tr{break-inside:avoid;}}';
+
+  function generateReport(data) {
+    if (!data) return;
+    const w = window.open('', '_blank');
+    if (!w) {
+      alert('Permita pop-ups para este site para gerar o relatório em PDF.');
+      return;
+    }
+    w.document.open();
+    w.document.write(buildReportHTML(data));
+    w.document.close();
+    w.focus();
   }
 
   function esc(s) {
