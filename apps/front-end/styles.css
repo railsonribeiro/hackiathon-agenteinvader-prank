@@ -68,6 +68,8 @@ body {
 .title { font-size: 30px; letter-spacing: 0.14em; margin: 0.2em 0 0; text-align: center; }
 .title.danger { color: var(--red-soft); text-shadow: 0 0 24px rgba(226, 32, 59, 0.6); }
 .title.safe { color: #86efac; text-shadow: 0 0 24px rgba(34, 197, 94, 0.5); }
+.title.ended { color: #ffd23f; font-size: 26px; text-shadow: 0 0 24px rgba(255, 210, 63, 0.35); }
+.reveal.ended .warn { filter: drop-shadow(0 0 16px rgba(255, 210, 63, 0.5)); }
 .subtitle {
   text-align: center; color: var(--muted); letter-spacing: 0.42em;
   margin: 0.3em 0 1.4em; font-size: 13px;
