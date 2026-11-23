@@ -11,16 +11,16 @@
   <div class="scanlines"></div>
   <main class="stage">
 
-    <!-- Página estática exibida depois do encerramento do Hackathon (ver
-         lib/closing.js e middleware.js). Sem formulário e sem nenhuma chamada
-         às APIs: nada é contado nem gravado aqui. -->
+    <!-- Página exibida depois do encerramento do Hackathon (ver lib/closing.js
+         e middleware.js). Sem formulário: nada é contado nem gravado aqui. A
+         única chamada é a leitura de /api/closing, para mostrar a data em vigor. -->
     <section class="card reveal ended" aria-labelledby="endedTitle">
       <div class="warn" aria-hidden="true">&#127937;</div>
       <h1 class="title ended" id="endedTitle">SIMULAÇÃO ENCERRADA</h1>
       <p class="subtitle">HACKATHON FINALIZADO</p>
 
       <p class="lead">
-        O Hackathon terminou em <strong>25/11/2026, às 23h59min59</strong> &mdash;
+        O Hackathon terminou em <strong id="closedAt">25/11/2026, às 23h59min59</strong> &mdash;
         e esta simulação terminou junto.
       </p>
       <p class="body">
@@ -65,5 +65,29 @@
     </section>
 
   </main>
+  <script>
+    // Mostra a data de encerramento em vigor (padrão do código ou a env
+    // SIMULATION_CLOSES_AT). Se a chamada falhar, fica o texto do HTML.
+    (function () {
+      var target = document.getElementById('closedAt');
+      if (!target || !window.fetch) return;
+      fetch('/api/closing', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) {
+          var d = data && data.closesAt ? new Date(data.closesAt) : null;
+          if (!d || isNaN(d.getTime())) return;
+          var p = {};
+          new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Sao_Paulo', hourCycle: 'h23',
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+          }).formatToParts(d).forEach(function (x) { p[x.type] = x.value; });
+          var text = p.day + '/' + p.month + '/' + p.year + ', às ' + p.hour + 'h' + p.minute;
+          if (p.second !== '00') text = text.replace(/h(\d\d)$/, 'h$1min' + p.second);
+          target.textContent = text;
+        })
+        .catch(function () {});
+    })();
+  </script>
 </body>
 </html>
