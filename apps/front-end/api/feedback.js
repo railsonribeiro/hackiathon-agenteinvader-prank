@@ -1,9 +1,12 @@
 import { supabase } from '../lib/supabase.js';
+import { rejectIfClosed } from '../lib/closing.js';
 
 // Avaliação da revelação (nota 1-5 + comentário opcional). Persiste a nota, o
 // texto e a localidade grosseira (país/região/cidade, dos cabeçalhos de geo do
 // Vercel) — sem IP e sem nada que identifique o usuário.
 export default async function handler(req, res) {
+  // Hackathon encerrado: não grava mais nada (ver lib/closing.js).
+  if (rejectIfClosed(res)) return;
   res.setHeader('Cache-Control', 'no-store');
   try {
     const body = req.body || {};

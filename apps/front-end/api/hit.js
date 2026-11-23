@@ -1,9 +1,12 @@
 import { supabase } from '../lib/supabase.js';
+import { rejectIfClosed } from '../lib/closing.js';
 
 // Conta UM acesso (abertura da página). Guarda apenas localização agregada
 // (país/região/cidade), vinda dos cabeçalhos de geo do Vercel — SEM IP e sem
 // nada que identifique o usuário.
 export default async function handler(req, res) {
+  // Hackathon encerrado: não grava mais nada (ver lib/closing.js).
+  if (rejectIfClosed(res)) return;
   try {
     const country = req.headers['x-vercel-ip-country'] || null;
     const region = req.headers['x-vercel-ip-country-region'] || null;

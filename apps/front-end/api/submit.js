@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { supabase } from '../lib/supabase.js';
+import { rejectIfClosed } from '../lib/closing.js';
 
 // Salt do hash do IP. Mantém o hash não-reversível (contra tabela arco-íris).
 // Pode ser sobrescrito por env; o essencial é que o IP em si NUNCA é guardado.
@@ -40,6 +41,8 @@ function filledCount(v, correct) {
 // dados do PDF. E conta no máximo uma vez por IP: cliques repetidos da mesma
 // pessoa não inflam as métricas.
 export default async function handler(req, res) {
+  // Hackathon encerrado: não grava mais nada (ver lib/closing.js).
+  if (rejectIfClosed(res)) return;
   try {
     const ipHash = clientIpHash(req);
     const correct = correctCount(req.body && req.body.correct);
