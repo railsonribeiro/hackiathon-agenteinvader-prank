@@ -53,15 +53,15 @@ Os caminhos abaixo são relativos a `apps/front-end/`.
 | `/api/metrics` | `api/metrics.js` | Devolve contadores, funil e avaliações (exige login do Supabase) |
 | `/api/config` | `api/config.js` | Credenciais públicas do Supabase para o login no cliente |
 
-### Encerramento da simulação (25/11/2026, 23h59)
+### Encerramento da simulação (25/11/2026, 23h59min59)
 
-O Hackathon termina em **25/11/2026 às 23h59 (horário de Brasília)**. A partir desse momento, sem precisar de deploy:
+O Hackathon termina em **25/11/2026 às 23h59min59 (horário de Brasília)**. A partir desse momento, sem precisar de deploy:
 
 - `middleware.js` redireciona `/` (no host da simulação) para **`/encerrado`**, uma página estática que explica que a simulação acabou, sem formulário e sem nenhuma chamada às APIs;
 - `/api/hit`, `/api/submit`, `/api/event` e `/api/feedback` respondem `410 Gone` e **não gravam mais nada**;
 - o painel (`/dashboard`, `/api/metrics`) e o redirecionamento do `admin.` continuam iguais, com os dados coletados até o encerramento.
 
-A data fica em `apps/front-end/lib/closing.js`. Para testar ou adiar sem mexer no código, defina a variável **`SIMULATION_CLOSES_AT`** no Vercel com uma data ISO 8601 com fuso (ex.: `2026-11-25T23:59:00-03:00`) e faça Redeploy. Valor inválido é ignorado. A página `/encerrado` pode ser vista a qualquer momento, inclusive antes da data. Se adiar, atualize também a data escrita em `encerrado.html`.
+A data fica em `apps/front-end/lib/closing.js`. Para testar ou adiar sem mexer no código, defina a variável **`SIMULATION_CLOSES_AT`** no Vercel com uma data ISO 8601 com fuso (ex.: `2026-11-25T23:59:59-03:00`) e faça Redeploy. Valor inválido é ignorado. A página `/encerrado` pode ser vista a qualquer momento, inclusive antes da data. Se adiar, atualize também a data escrita em `encerrado.html`.
 
 - **Front-end:** HTML/CSS/JS puro, sem framework e sem build.
 - **Back-end:** funções serverless do Vercel (`/api`).

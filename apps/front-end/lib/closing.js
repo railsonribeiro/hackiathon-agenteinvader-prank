@@ -1,6 +1,6 @@
 // Encerramento da simulação.
 //
-// O Hackathon termina em 25/11/2026 às 23h59 (horário de Brasília). A partir
+// O Hackathon termina em 25/11/2026 às 23h59min59 (horário de Brasília). A partir
 // daí não faz mais sentido manter a isca no ar: a página "/" passa a mostrar
 // /encerrado e as APIs que gravam dados (/api/hit, /api/submit, /api/event,
 // /api/feedback) deixam de gravar. O painel (/dashboard e /api/metrics)
@@ -11,8 +11,8 @@
 //
 // Para testar ou adiar sem novo deploy de código, defina a variável de ambiente
 // SIMULATION_CLOSES_AT no Vercel com uma data ISO 8601 com fuso, por exemplo
-// "2026-11-25T23:59:00-03:00" (e faça Redeploy). Valor inválido é ignorado.
-export const DEFAULT_CLOSES_AT = '2026-11-25T23:59:00-03:00';
+// "2026-11-25T23:59:59-03:00" (e faça Redeploy). Valor inválido é ignorado.
+export const DEFAULT_CLOSES_AT = '2026-11-25T23:59:59-03:00';
 
 function readEnv() {
   try {
