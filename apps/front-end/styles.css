@@ -185,6 +185,25 @@ body {
 .foot a { color: var(--red-soft); text-decoration: none; }
 .foot a:hover { text-decoration: underline; }
 
+/* Bloco de resultados na página /encerrado: download do relatório + contato. */
+.report {
+  margin: 20px 0 0; padding: 16px; border-radius: 10px; text-align: center;
+  background: rgba(255, 210, 63, 0.06); border: 1px solid rgba(255, 210, 63, 0.3);
+}
+.report-title {
+  margin: 0 0 12px; font-size: 14px; font-weight: 700;
+  color: #ffd23f; letter-spacing: 0.02em;
+}
+.report-btn {
+  display: inline-block; padding: 11px 20px; border-radius: 8px;
+  font-weight: 700; font-size: 14px; text-decoration: none; color: #2a1400;
+  background: linear-gradient(90deg, #ffd23f, #ffb020);
+}
+.report-btn:hover { filter: brightness(1.05); }
+.report-links { margin: 12px 0 0; font-size: 12px; line-height: 1.7; color: var(--muted); }
+.report-links a { color: #ffd23f; text-decoration: none; word-break: break-word; }
+.report-links a:hover { text-decoration: underline; }
+
 .feedback {
   margin: 20px 0 0; padding: 16px 16px 14px; border-radius: 10px;
   background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
