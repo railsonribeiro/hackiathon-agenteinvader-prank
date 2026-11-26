@@ -64,6 +64,10 @@ O Hackathon termina em **25/11/2026 às 23h59min59 (horário de Brasília)**. A 
 
 A data fica em `apps/front-end/lib/closing.js`. Para testar ou adiar sem mexer no código, defina a variável **`SIMULATION_CLOSES_AT`** no Vercel com uma data ISO 8601 com fuso (ex.: `2026-11-25T23:59:59-03:00`) e faça Redeploy. Valor inválido é ignorado. A página `/encerrado` pode ser vista a qualquer momento, inclusive antes da data, e mostra a data em vigor (lida de `/api/closing`) — não precisa editar o HTML ao mudar a data.
 
+### Proteção das rotas de escrita
+
+As rotas que gravam (`/api/hit`, `/api/submit`, `/api/event`, `/api/feedback`) passam por `apps/front-end/lib/request-guard.js` antes de tocar o banco: exigem método **POST** (405 caso contrário) e **mesma origem** — o `Origin` (ou, na falta, o `Referer`) precisa bater com o host da requisição, senão respondem `403`. Sem `Origin` nem `Referer` a chamada passa, porque há navegadores e políticas de privacidade que não os enviam. Isso eleva a barra contra chamadas feitas pelo JS de outro site, mas **não** para um atacante que monta a requisição crua (curl/script), que pode omitir ou forjar o `Origin`; a integridade forte dependeria de validar o token do Turnstile no servidor e/ou rate limit. O controle de data (acima) é independente desse guard e continua sendo quem barra tudo após o encerramento.
+
 - **Front-end:** HTML/CSS/JS puro, sem framework e sem build.
 - **Back-end:** funções serverless do Vercel (`/api`).
 - **Banco de dados:** [Supabase](https://supabase.com) (Postgres). Migrations em `supabase/migrations/`, aplicadas automaticamente pelo CI.
