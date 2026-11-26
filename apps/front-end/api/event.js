@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase.js';
 import { rejectIfClosed } from '../lib/closing.js';
+import { rejectBadRequest } from '../lib/request-guard.js';
 
 // Estágios do funil aceitos (os posteriores ao clique em "Confirmar").
 //   timeout  -> o cronômetro de urgência esgotou e a revelação apareceu sem o
@@ -11,6 +12,8 @@ const STAGES = new Set(['timeout']);
 // Registra UMA passagem por um estágio do funil. Agregado: grava só qual etapa
 // foi atingida. Sem IP, sem cookie, sem nada que identifique o usuário.
 export default async function handler(req, res) {
+  // Só POST da própria origem (ver lib/request-guard.js).
+  if (rejectBadRequest(req, res)) return;
   // Hackathon encerrado: não grava mais nada (ver lib/closing.js).
   if (rejectIfClosed(res)) return;
   res.setHeader('Cache-Control', 'no-store');
